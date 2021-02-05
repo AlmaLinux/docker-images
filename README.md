@@ -1,45 +1,27 @@
-# AlmaLinux Docker Images
+# AlmaLinux
 
-This project contains sources and tools for building official AlmaLinux Docker
-images.
-
-
-## Requirements
-
-You need to install the following RPM packages on an AlmaLinux system:
-
-* anaconda-tui
-* lorax
-* subscription-manager (make sure the `rhsm` service is running, see [rhbz#1872902](https://bugzilla.redhat.com/show_bug.cgi?id=1872902)) 
+[AlmaLinux](https://almalinux.org/) is an open-source, community-driven
+project that intends to fill the gap left by the demise of the CentOS
+stable release. AlmaLinux is a 1:1 binary compatible fork of RHEL® 8 and
+it is built by the creators of the established
+[CloudLinux OS](https://www.cloudlinux.com/all-products/product-overview/cloudlinuxos).
 
 
-## Known issues
+## Image tags and versions
 
-You may see the following message in the output:
-
-```
-2021-02-05 20:28:10,554: Error in atexit._run_exitfuncs:
-2021-02-05 20:28:10,555: Traceback (most recent call last):
-2021-02-05 20:28:10,555: File "/usr/lib/python3.6/site-packages/dasbus/client/handler.py", line 477, in _get_method_reply
-2021-02-05 20:28:10,557: return self._handle_method_error(error)
-2021-02-05 20:28:10,559: File "/usr/lib/python3.6/site-packages/dasbus/client/handler.py", line 497, in _handle_method_error
-2021-02-05 20:28:10,560: raise exception from None
-2021-02-05 20:28:10,562: dasbus.error.DBusError: umount of /mnt/sysimage/run failed (32)
-```
-
-This happens because we need to unmount `/run` in the kickstart file.
-It doesn't affect the result, see
-[rhbz#1904008](https://bugzilla.redhat.com/show_bug.cgi?id=1904008) for
-details.
-
-
-## References
-
-* https://docs.docker.com/develop/develop-images/baseimages/
-* https://github.com/opencontainers/image-spec/blob/master/annotations.md
-* https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/system_design_guide/kickstart-script-file-format-reference_system-design-guide
+The `almalinux:latest` tag always points to the most recent version available.
 
 
 ## License
 
-Licensed under the MIT license, see the [LICENSE](LICENSE) file for details.
+This image contains various Open Source software distributed by different licenses.
+
+Use the following command to see a specific package license name:
+
+```sh
+rpm -q --queryformat '%{license}\n' ${PACKAGE_NAME}
+```
+
+Red Hat and CentOS are trademarks or registered trademarks of Red Hat, Inc.
+or its subsidiaries in the United States and other countries. We are not
+affiliated with, endorsed by or sponsored by Red Hat or the CentOS Project.
