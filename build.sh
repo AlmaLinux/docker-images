@@ -19,7 +19,7 @@ fi
 
 livemedia-creator --no-virt --make-tar --ks "${KS_PATH}" \
                   --image-name="${IMAGE_NAME}" \
-                  --project "AlmaLinux ${RELEASE_VER} Docker" \
+                  --project "AlmaLinux OS ${RELEASE_VER} Docker" \
                   --releasever "${RELEASE_VER}" \
                   --resultdir "${OUTPUT_DIR}"
 
@@ -31,8 +31,8 @@ FROM scratch
 ADD ${IMAGE_NAME} /
 
 # see https://github.com/opencontainers/image-spec/blob/master/annotations.md for details
-LABEL org.opencontainers.image.title="AlmaLinux Base Image"
-LABEL org.opencontainers.image.vendor="AlmaLinux"
+LABEL org.opencontainers.image.title="AlmaLinux OS 8 Base Image"
+LABEL org.opencontainers.image.vendor="AlmaLinux OS"
 # TODO: should we list all included RPM package licenses here?
 #       Right now it is just our Dockerfile/build scripts license.
 LABEL org.opencontainers.image.licenses="MIT"
