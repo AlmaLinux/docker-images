@@ -37,7 +37,7 @@ LABEL org.opencontainers.image.vendor="AlmaLinux OS"
 #       Right now it is just our Dockerfile/build scripts license.
 LABEL org.opencontainers.image.licenses="MIT"
 LABEL org.opencontainers.image.created="${BUILD_DATE}"
-LABEL org.opencontainers.image.authors="Eugene Zamriy <ezamriy@cloudlinux.com>"
+LABEL org.opencontainers.image.authors="Eugene Zamriy <ezamriy@almalinux.org>"
 LABEL org.opencontainers.image.source="https://github.com/AlmaLinux/docker-images"
 LABEL org.opencontainers.image.url="https://github.com/AlmaLinux/docker-images"
 
