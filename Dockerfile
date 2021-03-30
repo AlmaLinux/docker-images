@@ -7,8 +7,8 @@ LABEL org.opencontainers.image.vendor="AlmaLinux OS"
 # TODO: should we list all included RPM package licenses here?
 #       Right now it is just our Dockerfile/build scripts license.
 LABEL org.opencontainers.image.licenses="MIT"
-LABEL org.opencontainers.image.created="2021-02-28 10:23:17+00:00"
-LABEL org.opencontainers.image.authors="Eugene Zamriy <ezamriy@cloudlinux.com>"
+LABEL org.opencontainers.image.created="2021-03-30 21:49:32+00:00"
+LABEL org.opencontainers.image.authors="Eugene Zamriy <ezamriy@almalinux.org>"
 LABEL org.opencontainers.image.source="https://github.com/AlmaLinux/docker-images"
 LABEL org.opencontainers.image.url="https://github.com/AlmaLinux/docker-images"
 
