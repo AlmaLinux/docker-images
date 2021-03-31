@@ -11,7 +11,7 @@ KS_PATH="./kickstarts/almalinux-${RELEASE_VER}.ks"
 OUTPUT_DIR="./result"
 
 
-if [[ -d OUTPUT_DIR ]]; then
+if [[ -d "${OUTPUT_DIR}" ]]; then
     echo "Output directory ${OUTPUT_DIR} is already exist, please remove it"
     exit 1
 fi
@@ -26,7 +26,7 @@ livemedia-creator --no-virt --make-tar --ks "${KS_PATH}" \
 
 BUILD_DATE="$(date --rfc-3339=seconds --utc)"
 
-cat << EOF > ${OUTPUT_DIR}/Dockerfile
+cat << EOF > "${OUTPUT_DIR}/Dockerfile"
 FROM scratch
 ADD ${IMAGE_NAME} /
 
