@@ -12,7 +12,7 @@ OUTPUT_DIR="./result"
 
 
 if [[ -d "${OUTPUT_DIR}" ]]; then
-    echo "Output directory ${OUTPUT_DIR} is already exist, please remove it"
+    echo "Output directory ${OUTPUT_DIR} already exists, please remove it"
     exit 1
 fi
 
