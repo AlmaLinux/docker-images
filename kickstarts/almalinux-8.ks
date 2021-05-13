@@ -20,12 +20,13 @@ rootpw --iscrypted --lock almalinux
 
 shutdown
 
-%packages --ignoremissing --excludedocs --instLangs=en_US.UTF-8 --nocore
+%packages --ignoremissing --excludedocs --instLangs=en --nocore
 almalinux-release
 bash
 binutils
 coreutils-single
 dnf
+findutils
 glibc-minimal-langpack
 hostname
 iputils
@@ -35,18 +36,30 @@ tar
 vim-minimal
 # TODO: do we really need yum additionally to dnf?
 yum
+xz
 
 -brotli
+-cracklib-dicts
+-crypto-policies-scripts
 -firewalld
+-diffutils
+-elfutils-debuginfod-client
 -gettext*
+-glibc-langpack-en
 -gnupg2-smime
 -grub\*
 -iptables
 -kernel
+-libevent
+-openssl
 -os-prober
+-open-vm-tools
+-pciutils
 -pinentry
+-platform-python-pip
 -shared-mime-info
 -trousers
+-unbound-libs
 -xkeyboard-config
 %end
 
@@ -84,5 +97,6 @@ systemctl mask console-getty.service \
 rm -f /var/lib/dnf/history.* \
       /run/nologin
 rm -fr /var/log/* \
-       /tmp/* /tmp/.* || true
+       /tmp/* /tmp/.* \
+       /boot || true
 %end
