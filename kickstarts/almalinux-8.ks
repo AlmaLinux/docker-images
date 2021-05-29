@@ -39,7 +39,6 @@ yum
 xz
 
 -brotli
--cracklib-dicts
 -crypto-policies-scripts
 -firewalld
 -diffutils
@@ -54,7 +53,6 @@ xz
 -openssl
 -os-prober
 -open-vm-tools
--pciutils
 -pinentry
 -platform-python-pip
 -shared-mime-info
