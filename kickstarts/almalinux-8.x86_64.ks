@@ -1,7 +1,7 @@
-# AlmaLinux 8 kickstart file for base Docker image
+# AlmaLinux 8 kickstart file for x86_64 base Docker image
 
 install
-url --url https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/kickstart/
+url --url https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/
 
 lang en_US.UTF-8
 keyboard us
@@ -34,7 +34,6 @@ less
 rootfiles
 tar
 vim-minimal
-# TODO: do we really need yum additionally to dnf?
 yum
 xz
 

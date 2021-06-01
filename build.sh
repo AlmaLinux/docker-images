@@ -6,8 +6,9 @@
 set -euo pipefail
 
 RELEASE_VER='8'
+ARCH="$(uname -m)"
 IMAGE_NAME="almalinux-${RELEASE_VER}-docker.tar.xz"
-KS_PATH="./kickstarts/almalinux-${RELEASE_VER}.ks"
+KS_PATH="./kickstarts/almalinux-${RELEASE_VER}.${ARCH}.ks"
 OUTPUT_DIR="./result"
 
 
