@@ -29,8 +29,14 @@ json-glib
 langpacks-en
 microdnf
 rootfiles
-xz
+brotli
+gpg-pubkey
+libpsl
+libssh
+libssh-config
+publicsuffix-list-dafsa
 
+-xz
 -binutils
 -dnf
 -findutils
@@ -40,7 +46,6 @@ xz
 -tar
 -vim-minimal
 -yum
--brotli
 -crypto-policies-scripts
 -firewalld
 -diffutils
