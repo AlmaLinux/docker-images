@@ -23,20 +23,18 @@ shutdown
 %packages --ignoremissing --excludedocs --instLangs=en --nocore
 almalinux-release
 bash
+brotli
 coreutils-single
 glibc-minimal-langpack
 json-glib
 langpacks-en
-microdnf
-rootfiles
-brotli
-gpg-pubkey
 libpsl
 libssh
 libssh-config
+microdnf
 publicsuffix-list-dafsa
+rootfiles
 
--xz
 -binutils
 -dnf
 -findutils
@@ -66,6 +64,7 @@ publicsuffix-list-dafsa
 -trousers
 -unbound-libs
 -xkeyboard-config
+-xz
 %end
 
 
