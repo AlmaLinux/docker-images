@@ -22,20 +22,13 @@ shutdown
 
 %packages --ignoremissing --excludedocs --instLangs=en --nocore --excludeWeakdeps
 almalinux-release
-bash
-brotli
 coreutils-single
 glibc-minimal-langpack
-json-glib
-langpacks-en
-libpsl
-libssh
-libssh-config
 microdnf
-publicsuffix-list-dafsa
 rootfiles
 
 -binutils
+-brotli
 -dnf
 -findutils
 -hostname
