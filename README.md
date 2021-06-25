@@ -3,7 +3,6 @@
 This project contains sources and tools for building [Official AlmaLinux Docker](https://hub.docker.com/_/almalinux)
 images.
 
-
 ## Build Requirements
 
 Docker images are created using AlmaLinux `rootfs` images. These images can be created from customized `kickstart` sources.
@@ -14,7 +13,7 @@ You need an **AlmaLinux system** with following RPM packages installed to run th
 
 * anaconda-tui
 * lorax
-* subscription-manager (make sure the `rhsm` service is running, see [rhbz#1872902](https://bugzilla.redhat.com/show_bug.cgi?id=1872902)) 
+* subscription-manager (make sure the `rhsm` service is running, see [rhbz#1872902](https://bugzilla.redhat.com/show_bug.cgi?id=1872902))
 
 ```sh
 ./build.sh -h
@@ -41,7 +40,7 @@ Use command below to create `minimal` docker files
 
 You may see the following message in the output:
 
-```
+```sh
 2021-02-05 20:28:10,554: Error in atexit._run_exitfuncs:
 2021-02-05 20:28:10,555: Traceback (most recent call last):
 2021-02-05 20:28:10,555: File "/usr/lib/python3.6/site-packages/dasbus/client/handler.py", line 477, in _get_method_reply
@@ -67,7 +66,7 @@ docker run --rm --privileged -v "$PWD:/build:z" \
     -e BUILD_KICKSTART=kickstarts/almalinux-8-default.x86_64.ks \
     -e BUILD_ROOTFS=almalinux-8-docker-default.x86_64.tar.gz \
     -e BUILD_OUTDIR=default \
-    srbala/ks2rootfs:alma
+    almalinux/ks2rootfs
 ```
 
 Use command below to create `minimal` docker files
@@ -77,15 +76,14 @@ docker run --rm --privileged -v "$PWD:/build:z" \
     -e BUILD_KICKSTART=kickstarts/almalinux-8-minimal.x86_64.ks \
     -e BUILD_ROOTFS=almalinux-8-docker-minimal.x86_64.tar.gz \
     -e BUILD_OUTDIR=minimal \
-    srbala/ks2rootfs:alma
+    almalinux/ks2rootfs
 ```
 
 ## References
 
-* https://docs.docker.com/develop/develop-images/baseimages/
-* https://github.com/opencontainers/image-spec/blob/master/annotations.md
-* https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/system_design_guide/kickstart-script-file-format-reference_system-design-guide
-
+* Docker documentaion - [Create a base image](https://docs.docker.com/develop/develop-images/baseimages/)
+* Opencontainers [image-spec annotations/labels](https://github.com/opencontainers/image-spec/blob/master/annotations.md)
+* RedHat [Kickstart Reference guide](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/system_design_guide/kickstart-script-file-format-reference_system-design-guide)
 
 ## License
 
