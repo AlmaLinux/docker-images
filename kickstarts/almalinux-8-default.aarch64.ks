@@ -1,6 +1,6 @@
 # AlmaLinux 8 kickstart file for aarch64 base Docker image
 
-install
+# install
 url --url https://repo.almalinux.org/almalinux/8.4-beta/BaseOS/aarch64/os/
 
 lang en_US.UTF-8
@@ -20,7 +20,7 @@ rootpw --iscrypted --lock almalinux
 
 shutdown
 
-%packages --ignoremissing --excludedocs --instLangs=en --nocore
+%packages --ignoremissing --excludedocs --instLangs=en --nocore --excludeWeakdeps
 almalinux-release
 bash
 binutils

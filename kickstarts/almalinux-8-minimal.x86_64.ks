@@ -1,6 +1,6 @@
 # AlmaLinux 8 kickstart file for x86_64 base Docker image
 
-install
+# install
 url --url https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/
 
 lang en_US.UTF-8
@@ -20,24 +20,23 @@ rootpw --iscrypted --lock almalinux
 
 shutdown
 
-%packages --ignoremissing --excludedocs --instLangs=en --nocore
+%packages --ignoremissing --excludedocs --instLangs=en --nocore --excludeWeakdeps
 almalinux-release
-bash
-binutils
 coreutils-single
-dnf
-findutils
 glibc-minimal-langpack
-hostname
-iputils
-less
+microdnf
 rootfiles
-tar
-vim-minimal
-yum
-xz
 
+-binutils
 -brotli
+-dnf
+-findutils
+-hostname
+-iputils
+-less
+-tar
+-vim-minimal
+-yum
 -crypto-policies-scripts
 -firewalld
 -diffutils
@@ -58,6 +57,7 @@ xz
 -trousers
 -unbound-libs
 -xkeyboard-config
+-xz
 %end
 
 
