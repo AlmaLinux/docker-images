@@ -77,7 +77,6 @@ livemedia-creator --no-virt --make-tar --ks "${KS_PATH}" \
 
 
 cat << EOF > "${OUTPUT_DIR}/Dockerfile"
-# This file auto generated from 'build.sh' script, any changes will be over-written
 FROM scratch
 ADD ${IMAGE_NAME} /
 
