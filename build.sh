@@ -18,7 +18,7 @@ show_usage() {
     echo -e 'Usage: build.sh [OPTION]...\n'
     echo '  -h        show this message and exit'
     echo '  -o        output directory path. Default is "./result"'
-    echo '  -t        build type (either "default" or "minimal")'
+    echo '  -t        image build type like "default", "init", "micro", "minimal". Default is "default"'
 }
 
 
@@ -43,7 +43,7 @@ while getopts "ho:t:" opt; do
             ;;
         t)
             case "${OPTARG}" in
-                default|minimal)
+                default|init|micro|minimal)
                     TYPE="${OPTARG}"
                     ;;
                 *)
