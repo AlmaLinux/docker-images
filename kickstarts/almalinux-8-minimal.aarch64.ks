@@ -8,7 +8,6 @@ keyboard us
 timezone --nontp --utc UTC
 
 network --activate --bootproto=dhcp --device=link --onboot=on
-firewall --disabled
 selinux --disabled
 
 bootloader --disable
@@ -20,46 +19,29 @@ rootpw --iscrypted --lock almalinux
 
 shutdown
 
-%packages --ignoremissing --excludedocs --instLangs=en --nocore --excludeWeakdeps
+%packages --excludedocs --nocore --instLangs=en --excludeWeakdeps
 almalinux-release
+bash
 coreutils-single
 glibc-minimal-langpack
+libusbx
 microdnf
 rootfiles
-
--binutils
--brotli
--dnf
--findutils
--hostname
--iputils
--less
--tar
--vim-minimal
--yum
 -crypto-policies-scripts
--firewalld
--diffutils
--elfutils-debuginfod-client
--gettext*
--glibc-langpack-en
+-dosfstools
+-e2fsprogs
+-fuse-libs
 -gnupg2-smime
--grub\*
--iptables
 -kernel
--libevent
--openssl
--os-prober
+-libss
 -open-vm-tools
 -pinentry
--platform-python-pip
+-qemu-guest-agent
 -shared-mime-info
 -trousers
--unbound-libs
+-xfsprogs
 -xkeyboard-config
--xz
 %end
-
 
 %post --erroronfail --log=/root/anaconda-post.log
 # generate build time file for compatibility with CentOS
@@ -78,22 +60,27 @@ echo '%_install_langs en_US.UTF-8' > /etc/rpm/macros.image-language-conf
 # force each container to have a unique machine-id
 > /etc/machine-id
 
-# create tmp directories because there is no tmpfs support in Docker
-umount /run
-systemd-tmpfiles --create --boot
-
-# disable login prompt and mounts
-systemctl mask console-getty.service \
-               dev-hugepages.mount \
-               getty.target \
-               systemd-logind.service \
-               sys-fs-fuse-connections.mount \
-               systemd-remount-fs.service
-
 # remove unnecessary files
 rm -f /var/lib/dnf/history.* \
       /run/nologin
 rm -fr /var/log/* \
        /tmp/* /tmp/.* \
        /boot || true
+%end
+
+%post --nochroot --logfile=/mnt/sysimage/root/anaconda-post-nochroot.log --erroronfail
+set -eux
+
+# https://bugzilla.redhat.com/show_bug.cgi?id=1343138
+umount /mnt/sysimage/run
+# We don't have systemd and need to create manually
+chroot /mnt/sysimage install -d /run/lock -m 0755 -o root -g root
+
+# See: https://bugzilla.redhat.com/show_bug.cgi?id=1051816
+# NOTE: run this in nochroot because "find" does not exist in chroot
+KEEPLANG=en_US
+for dir in locale i18n; do
+    find /mnt/sysimage/usr/share/${dir} -mindepth  1 -maxdepth 1 -type d -not \( -name "${KEEPLANG}" -o -name POSIX \) -exec rm -rfv {} +
+done
+
 %end
