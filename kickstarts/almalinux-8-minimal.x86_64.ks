@@ -20,44 +20,28 @@ rootpw --iscrypted --lock almalinux
 
 shutdown
 
-%packages --ignoremissing --excludedocs --instLangs=en --nocore --excludeWeakdeps
+%packages --excludedocs --nocore --instLangs=en --excludeWeakdeps
 almalinux-release
+bash
 coreutils-single
 glibc-minimal-langpack
+libusbx
 microdnf
 rootfiles
-
--binutils
--brotli
--dnf
--findutils
--hostname
--iputils
--less
--tar
--vim-minimal
--yum
 -crypto-policies-scripts
--firewalld
--diffutils
--elfutils-debuginfod-client
--gettext*
--glibc-langpack-en
+-dosfstools
+-e2fsprogs
+-fuse-libs
 -gnupg2-smime
--grub\*
--iptables
 -kernel
--libevent
--openssl
--os-prober
+-libss
 -open-vm-tools
 -pinentry
--platform-python-pip
+-qemu-guest-agent
 -shared-mime-info
 -trousers
--unbound-libs
+-xfsprogs
 -xkeyboard-config
--xz
 %end
 
 
