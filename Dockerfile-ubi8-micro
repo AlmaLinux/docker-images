@@ -1,0 +1,10 @@
+FROM almalinux:latest AS ubi-micro-build
+RUN mkdir -p /mnt/rootfs
+RUN dnf install --installroot /mnt/rootfs coreutils-single glibc-minimal-langpack --releasever 8 --setopt=install_weak_deps=False --nodocs -y; dnf --installroot /mnt/rootfs clean all
+RUN rm -rf /mnt/rootfs/var/cache/* /mnt/rootfs/var/lib/dnf /mnt/rootfs/var/log/*
+RUN find /mnt/rootfs/usr/share/locale/* -not \( -name 'locale.alias' -o -name POSIX \) -delete
+
+FROM scratch
+
+COPY --from=ubi-micro-build /mnt/rootfs/ /
+CMD /bin/sh
