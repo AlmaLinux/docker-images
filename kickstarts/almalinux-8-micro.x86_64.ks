@@ -8,7 +8,6 @@ keyboard us
 timezone --nontp --utc UTC
 
 network --activate --bootproto=dhcp --device=link --onboot=on
-firewall --disabled
 selinux --disabled
 
 bootloader --disable
