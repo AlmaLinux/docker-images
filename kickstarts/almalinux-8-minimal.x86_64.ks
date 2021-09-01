@@ -78,22 +78,27 @@ echo '%_install_langs en_US.UTF-8' > /etc/rpm/macros.image-language-conf
 # force each container to have a unique machine-id
 > /etc/machine-id
 
-# create tmp directories because there is no tmpfs support in Docker
-umount /run
-systemd-tmpfiles --create --boot
-
-# disable login prompt and mounts
-systemctl mask console-getty.service \
-               dev-hugepages.mount \
-               getty.target \
-               systemd-logind.service \
-               sys-fs-fuse-connections.mount \
-               systemd-remount-fs.service
-
 # remove unnecessary files
 rm -f /var/lib/dnf/history.* \
       /run/nologin
 rm -fr /var/log/* \
        /tmp/* /tmp/.* \
        /boot || true
+%end
+
+%post --nochroot --logfile=/mnt/sysimage/root/anaconda-post-nochroot.log --erroronfail
+set -eux
+
+# https://bugzilla.redhat.com/show_bug.cgi?id=1343138
+umount /mnt/sysimage/run
+# We don't have systemd and need to create manually
+chroot /mnt/sysimage install -d /run/lock -m 0755 -o root -g root
+
+# See: https://bugzilla.redhat.com/show_bug.cgi?id=1051816
+# NOTE: run this in nochroot because "find" does not exist in chroot
+KEEPLANG=en_US
+for dir in locale i18n; do
+    find /mnt/sysimage/usr/share/${dir} -mindepth  1 -maxdepth 1 -type d -not \( -name "${KEEPLANG}" -o -name POSIX \) -exec rm -rfv {} +
+done
+
 %end
