@@ -22,41 +22,30 @@ shutdown
 %packages --ignoremissing --excludedocs --instLangs=en --nocore --excludeWeakdeps
 coreutils-single
 glibc-minimal-langpack
-
--binutils
--brotli
--dnf
--findutils
 -crypto-policies-scripts
--diffutils
--elfutils-debuginfod-client
--firewalld
--gettext*
--glibc-langpack-en
+-dosfstools
+-e2fsprogs
+-fuse-libs
 -gnupg2-smime
--grub\*
--hostname
--iptables
--iputils
--langpacks-en
 -kernel
--libevent
--less
--openssl
--os-prober
+-langpacks-en
+-libss
 -open-vm-tools
 -pinentry
--platform-python-pip
+-qemu-guest-agent
 -shared-mime-info
--tar
 -trousers
--unbound-libs
--vim-minimal
+-xfsprogs
 -xkeyboard-config
--xz
--yum
 %end
 
+%pre
+# Pre configure tasks for Docker
+
+# Don't add the anaconda build logs to the image
+# see /usr/share/anaconda/post-scripts/99-copy-logs.ks
+touch /tmp/NOSAVE_LOGS
+%end
 
 %post --erroronfail --log=/root/anaconda-post.log
 # generate build time file for compatibility with CentOS
@@ -75,22 +64,21 @@ echo '%_install_langs en_US.UTF-8' > /etc/rpm/macros.image-language-conf
 # force each container to have a unique machine-id
 > /etc/machine-id
 
-# create tmp directories because there is no tmpfs support in Docker
-umount /run
-systemd-tmpfiles --create --boot
-
-# disable login prompt and mounts
-systemctl mask console-getty.service \
-               dev-hugepages.mount \
-               getty.target \
-               systemd-logind.service \
-               sys-fs-fuse-connections.mount \
-               systemd-remount-fs.service
-
 # remove unnecessary files
-rm -f /var/lib/dnf/history.* \
+rm -rfv /var/lib/dnf \
       /run/nologin
-rm -fr /var/log/* \
+rm -rfv /var/log/* \
        /tmp/* /tmp/.* \
        /boot || true
+%end
+
+%post --nochroot --logfile=/mnt/sysimage/root/anaconda-post-nochroot.log --erroronfail
+set -eux
+
+# https://bugzilla.redhat.com/show_bug.cgi?id=1343138
+umount /mnt/sysimage/run
+# We don't have systemd and need to create manually
+install -d /mnt/sysimage/run/lock -m 0755 -o root -g root
+
+find /mnt/sysimage/usr/share/locale/* -not \( -name 'locale.alias' -o -name POSIX \) -delete
 %end
