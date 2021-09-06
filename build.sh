@@ -75,12 +75,37 @@ livemedia-creator --no-virt --make-tar --ks "${KS_PATH}" \
                   --releasever "${RELEASE_VER}" \
                   --resultdir "${OUTPUT_DIR}"
 
+# save list of packages installed
+jq .[] -r /tmp/dnf.cache/tempfiles.json | awk -F '/' '{print $5}' | sort > ${OUTPUT_DIR}/rpm-packages
+
+STARTCMD=$( cat <<EOF
+
+CMD ["/bin/bash"]
+EOF
+)
+
+if [ ${TYPE} == 'init' ]; then
+  STARTCMD=$( cat <<EOF
+
+CMD ["/bin/init"]
+
+STOPSIGNAL SIGRTMIN+3
+EOF
+)
+fi
+
+if [ ${TYPE} == 'micro' ]; then
+  STARTCMD=$( cat <<EOF
+
+CMD ["/bin/sh"]
+EOF
+)
+fi
 
 cat << EOF > "${OUTPUT_DIR}/Dockerfile"
 FROM scratch
 ADD ${IMAGE_NAME} /
-
-CMD ["/bin/bash"]
+${STARTCMD}
 EOF
 
 save_logs "${OUTPUT_DIR}/logs"
