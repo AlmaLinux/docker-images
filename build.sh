@@ -76,9 +76,7 @@ livemedia-creator --no-virt --make-tar --ks "${KS_PATH}" \
                   --resultdir "${OUTPUT_DIR}"
 
 # save list of packages installed
-jq .[] -r /tmp/dnf.cache/tempfiles.json | awk -F '/' '{print $5}' | sort > ${OUTPUT_DIR}/pkgs-list-rpm
-cat ${OUTPUT_DIR}/pkgs-list-rpm | sed 's/-[0-9].*//g' > ${OUTPUT_DIR}/pkgs-list-only
-cat ${OUTPUT_DIR}/pkgs-list-rpm | sed 's/.el[0-9].*//g' > ${OUTPUT_DIR}/pkgs-list
+jq .[] -r /tmp/dnf.cache/tempfiles.json | awk -F '/' '{print $5}' | sort > ${OUTPUT_DIR}/rpm-packages
 
 STARTCMD=$( cat <<EOF
 
