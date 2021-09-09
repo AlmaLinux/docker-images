@@ -28,3 +28,10 @@ GitCommit: bc74e29d58210f825911fe73cd7ec0f724d1f78f
 arm64v8-GitFetch: refs/heads/almalinux-8-aarch64-init
 arm64v8-GitCommit: c0291ce4ff7d7bedb0fef86a863cb7405fb77520
 Architectures: amd64, arm64v8
+
+Tags: base, 8-base, 8.4-base
+GitFetch: refs/heads/almalinux-8-x86_64-base
+GitCommit: bc74e29d58210f825911fe73cd7ec0f724d1f78f
+arm64v8-GitFetch: refs/heads/almalinux-8-aarch64-base
+arm64v8-GitCommit: c0291ce4ff7d7bedb0fef86a863cb7405fb77520
+Architectures: amd64, arm64v8
