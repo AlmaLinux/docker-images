@@ -19,89 +19,50 @@ rootpw --iscrypted --lock almalinux
 
 shutdown
 
-%packages --ignoremissing --excludedocs --instLangs=en --nocore --excludeWeakdeps
+%packages --excludedocs --nocore --instLangs=en --excludeWeakdeps
 almalinux-release
 bash
-brotli
 coreutils-single
 crypto-policies-scripts
-cryptsetup-libs
-dbus
-dbus-common
-dbus-daemon
-dbus-tools
-device-mapper
-device-mapper-libs
-dmidecode
-dnf
-dnf-plugin-subscription-manager
 findutils
-glibc-minimal-langpack
 gdb-gdbserver
-gobject-introspection
-libcurl
+glibc-minimal-langpack
+gzip
 libuser
-librhsm
 passwd
 procps-ng
-publicsuffix-list-dafsa-20180723-1
-python3-chardet
-python3-dateutil
-python3-dbus
-python3-decorator
-python3-dmidecode
-python3-dnf-plugins-core
-python3-ethtool
-python3-gobject-base
-python3-idna
-python3-iniparse
-python3-inotify
-python3-librepo
-python3-libxml2
-python3-pysocks
-python3-requests
-python3-six
-python3-subscription-manager-rhsm
-python3-syspurpose
-python3-urllib3
-rdma-core
 rootfiles
-tar
-subscription-manager
 systemd
-systemd-pam
-tpm2-tss
+tar
 usermode
 vim-minimal
 virt-what
 which
 yum
-
--binutils
--diffutils
--elfutils-debuginfod-client
--firewalld
--gettext*
--glibc-langpack-en
+-dnf-plugin-subscription-manager
+-dosfstools
+-e2fsprogs
+-fuse-libs
 -gnupg2-smime
--grub\*
--hostname
--iputils
 -kernel
--less
--libevent
--openssl
--os-prober
+-libss
 -open-vm-tools
 -pinentry
--platform-python-pip
+-qemu-guest-agent
 -shared-mime-info
+-subscription-manager
 -trousers
--unbound-libs
+-xfsprogs
 -xkeyboard-config
--xz
 %end
 
+%pre
+# Pre configure tasks for Docker
+
+# Don't add the anaconda build logs to the image
+# see /usr/share/anaconda/post-scripts/99-copy-logs.ks
+touch /tmp/NOSAVE_LOGS
+%end
 
 %post --erroronfail --log=/root/anaconda-post.log
 # generate build time file for compatibility with CentOS
@@ -124,16 +85,25 @@ echo '%_install_langs en_US.UTF-8' > /etc/rpm/macros.image-language-conf
 umount /run
 systemd-tmpfiles --create --boot
 
-# disable login prompt and mounts
-systemctl mask console-getty.service \
+# disable login prompt, mounts and fix: https://bugzilla.redhat.com/show_bug.cgi?id=1472439
+systemctl mask systemd-remount-fs.service \
                dev-hugepages.mount \
-               getty.target \
-               systemd-logind.service \
                sys-fs-fuse-connections.mount \
-               systemd-remount-fs.service
+               systemd-logind.service \
+               getty.target \
+               console-getty.service \
+               systemd-udev-trigger.service \
+               systemd-udevd.service \
+               systemd-random-seed.service \
+               systemd-machine-id-commit.service
+
+KEEPLANG=en_US
+for dir in locale i18n; do
+    find /usr/share/${dir} -mindepth  1 -maxdepth 1 -type d -not \( -name "${KEEPLANG}" -o -name POSIX \) -exec rm -rfv {} +
+done
 
 # remove unnecessary files
-rm -f /var/lib/dnf/history.* \
+rm -f /var/lib/dnf \
       /run/nologin
 rm -fr /var/log/* \
        /tmp/* /tmp/.* \
