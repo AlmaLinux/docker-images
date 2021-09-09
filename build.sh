@@ -43,7 +43,7 @@ while getopts "ho:t:" opt; do
             ;;
         t)
             case "${OPTARG}" in
-                default|init|micro|minimal)
+                default|init|micro|minimal|base)
                     TYPE="${OPTARG}"
                     ;;
                 *)
