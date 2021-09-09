@@ -60,7 +60,8 @@ xz
 %end
 
 
-%post --erroronfail --log=/root/anaconda-post.log
+# NOTE: add --log=/root/anaconda-post.log for debugging
+%post --erroronfail
 # generate build time file for compatibility with CentOS
 /bin/date +%Y%m%d_%H%M > /etc/BUILDTIME
 

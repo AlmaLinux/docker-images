@@ -73,7 +73,8 @@ livemedia-creator --no-virt --make-tar --ks "${KS_PATH}" \
                   --image-name="${IMAGE_NAME}" \
                   --project "AlmaLinux OS ${RELEASE_VER}-${TYPE} Docker" \
                   --releasever "${RELEASE_VER}" \
-                  --resultdir "${OUTPUT_DIR}"
+                  --resultdir "${OUTPUT_DIR}" \
+                  --anaconda-arg "--nosave all"
 
 # save list of packages installed
 jq .[] -r /tmp/dnf.cache/tempfiles.json | awk -F '/' '{print $5}' | sort > ${OUTPUT_DIR}/rpm-packages
