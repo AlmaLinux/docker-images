@@ -21,19 +21,34 @@ Generates an AlmaLinux OS rootfs and Dockerfile
 Usage: build.sh [OPTION]...
   -h        show this message and exit
   -o        output directory path. Default is "./result"
-  -t        build type (either "default" or "minimal")
+  -t        build type. Possible options are base, default, init, micro and minimal
 ```
 
-Use command below to create `default` docker files
+Use command below to create `default` docker files for `almalinux:8`container image
 
 ```sh
 ./build.sh -o default -t default
 ```
 
-Use command below to create `minimal` docker files
+Use command below to create `minimal` docker files for `almalinux:minimal`container image
 
 ```sh
 ./build.sh -o minimal -t minimal
+```
+Use command below to create `base` docker files for `almalinux:base`container image
+
+```sh
+./build.sh -o base -t base
+```
+Use command below to create `micro` docker files for `almalinux:micro`container image
+
+```sh
+./build.sh -o micro -t micro
+```
+Use command below to create `init` docker files for `almalinux:init`container image
+
+```sh
+./build.sh -o init -t init
 ```
 
 ### Known issues
@@ -57,27 +72,42 @@ details.
 
 ### Using Docker
 
-You need a system with docker installed for this approach. This uses `srbala/ks2rootfs` [build utility](https://github.com/srbala/kickstart2rootfs) using docker.
+You need a system with docker installed for this approach. This uses `almalinux/ks2rootfs` [build utility](https://github.com/AlmaLinux/ks2rootfs) using docker.
 
 Use command below to create `default` docker files
 
 ```sh
 docker run --rm --privileged -v "$PWD:/build:z" \
-    -e BUILD_KICKSTART=kickstarts/almalinux-8-default.x86_64.ks \
-    -e BUILD_ROOTFS=almalinux-8-docker-default.x86_64.tar.gz \
-    -e BUILD_OUTDIR=default \
+    -e KICKSTART_FILE=kickstarts/almalinux-8-default.x86_64.ks \
+    -e IMAGE_NAME=almalinux-8-docker-default.x86_64.tar.gz \
+    -e OUTPUT_DIR=default \
+    -e BUILD_TYPE=default \
     almalinux/ks2rootfs
 ```
 
-Use command below to create `minimal` docker files
+Use command below to create `base` docker files
 
 ```sh
 docker run --rm --privileged -v "$PWD:/build:z" \
-    -e BUILD_KICKSTART=kickstarts/almalinux-8-minimal.x86_64.ks \
-    -e BUILD_ROOTFS=almalinux-8-docker-minimal.x86_64.tar.gz \
-    -e BUILD_OUTDIR=minimal \
+    -e KICKSTART_FILE=kickstarts/almalinux-8-base.x86_64.ks \
+    -e IMAGE_NAME=almalinux-8-docker-base.x86_64.tar.gz \
+    -e OUTPUT_DIR=base \
+    -e BUILD_TYPE=base \
     almalinux/ks2rootfs
 ```
+
+Use command below to create `init` docker files
+
+```sh
+docker run --rm --privileged -v "$PWD:/build:z" \
+    -e KICKSTART_FILE=kickstarts/almalinux-8-init.x86_64.ks \
+    -e IMAGE_NAME=almalinux-8-docker-init.x86_64.tar.gz \
+    -e OUTPUT_DIR=init \
+    -e BUILD_TYPE=init \
+    almalinux/ks2rootfs
+```
+
+Please make note docker utility cannot be used to generate `micro` and `minimal` packages. Work in progress to resolve it.
 
 ## References
 
