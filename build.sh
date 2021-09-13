@@ -88,7 +88,7 @@ EOF
 if [ ${TYPE} == 'init' ]; then
   STARTCMD=$( cat <<EOF
 
-CMD ["/bin/init"]
+CMD ["/sbin/init"]
 
 STOPSIGNAL SIGRTMIN+3
 EOF
