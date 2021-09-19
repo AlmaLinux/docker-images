@@ -6,7 +6,7 @@
 
 ## About this image
 
-[AlmaLinux OS](https://almalinux.org/) docker images can be use in any container platform environments. Best alternative to replace with `centos` images as it reaches [End of Life](https://centos.org/centos-linux-eol/).
+[AlmaLinux OS](https://almalinux.org/) images can be use with all [OCI complaint](https://opencontainers.org/) container runtime environments like docker, podman and kubernetes. Drop-in replacemenet to `centos` images as it reaches [End of Life](https://centos.org/centos-linux-eol/).
 
 ### Platform image, `latest` tag
 

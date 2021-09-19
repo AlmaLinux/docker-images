@@ -1,1 +1,1 @@
-View [license information](https://almalinux.org/legal/licensing-policy/) for the software contained in this image.
+View [license information](https://almalinux.org/p/legal-notice/) for the software contained in this image.
