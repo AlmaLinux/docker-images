@@ -30,4 +30,4 @@ The rootfs tarballs for this image are built using the [livemedia-creator tool](
 
 ### Other variant images
 
-AlmaLinux OS now offers new variant of images [**`almalinux/8-base`**](https://hub.docker.com/r/almalinux/8-base), [**`almalinux/8-init`**](https://hub.docker.com/r/almalinux/8-init) and [**`almalinux/8-micro`**](https://hub.docker.com/r/almalinux/8-micro) to be aligned with  RedHat UBI images.
+AlmaLinux OS now offers new variant of images [**`almalinux/8-base`**](https://hub.docker.com/r/almalinux/8-base), [**`almalinux/8-init`**](https://hub.docker.com/r/almalinux/8-init), [**`almalinux/8-micro`**](https://hub.docker.com/r/almalinux/8-micro) and [**`almalinux/8-minimal`**](https://hub.docker.com/r/almalinux/8-minimal)  to be aligned with  RedHat UBI images.
