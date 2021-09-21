@@ -1,7 +1,8 @@
 # AlmaLinux 8 kickstart file for x86_64 base Docker image
 
 # install
-url --url https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/
+arch=$(uname -m)
+url --url https://repo.almalinux.org/almalinux/8/BaseOS/$arch/os/
 
 lang en_US.UTF-8
 keyboard us
