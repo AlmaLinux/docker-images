@@ -1,7 +1,7 @@
-# AlmaLinux 8 kickstart file for aarch64 base Docker image
+# AlmaLinux 8 kickstart file for x86_64 base Docker image
 
 # install
-url --url https://repo.almalinux.org/almalinux/8/BaseOS/aarch64/os/
+url --url https://repo.almalinux.org/almalinux/8/BaseOS/$basearch/os/
 
 lang en_US.UTF-8
 keyboard us
@@ -30,7 +30,6 @@ glibc-minimal-langpack
 gzip
 libuser
 passwd
-procps-ng
 rootfiles
 systemd
 tar
@@ -85,11 +84,7 @@ systemctl mask systemd-remount-fs.service \
                sys-fs-fuse-connections.mount \
                systemd-logind.service \
                getty.target \
-               console-getty.service \
-               systemd-udev-trigger.service \
-               systemd-udevd.service \
-               systemd-random-seed.service \
-               systemd-machine-id-commit.service
+               console-getty.service
 
 KEEPLANG=en_US
 for dir in locale i18n; do

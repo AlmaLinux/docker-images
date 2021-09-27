@@ -1,7 +1,7 @@
-# AlmaLinux 8 kickstart file for aarch64 base Docker image
+# AlmaLinux 8 kickstart file for x86_64 base Docker image
 
 # install
-url --url https://repo.almalinux.org/almalinux/8/BaseOS/aarch64/os/
+url --url https://repo.almalinux.org/almalinux/8/BaseOS/$basearch/os/
 
 lang en_US.UTF-8
 keyboard us
@@ -19,16 +19,20 @@ rootpw --iscrypted --lock almalinux
 
 shutdown
 
-%packages --ignoremissing --excludedocs --instLangs=en --nocore --excludeWeakdeps
+%packages --excludedocs --nocore --instLangs=en --excludeWeakdeps
+almalinux-release
+bash
 coreutils-single
 glibc-minimal-langpack
+libusbx
+microdnf
+rootfiles
 -crypto-policies-scripts
 -dosfstools
 -e2fsprogs
 -fuse-libs
 -gnupg2-smime
 -kernel
--langpacks-en
 -libss
 -open-vm-tools
 -pinentry
@@ -38,7 +42,6 @@ glibc-minimal-langpack
 -xfsprogs
 -xkeyboard-config
 %end
-
 
 # NOTE: add --log=/root/anaconda-post.log for debugging
 %post --erroronfail
@@ -59,9 +62,9 @@ echo '%_install_langs en_US.UTF-8' > /etc/rpm/macros.image-language-conf
 > /etc/machine-id
 
 # remove unnecessary files
-rm -rfv /var/lib/dnf \
+rm -f /var/lib/dnf/history.* \
       /run/nologin
-rm -rfv /var/log/* \
+rm -fr /var/log/* \
        /tmp/* /tmp/.* \
        /boot || true
 %end
@@ -73,7 +76,13 @@ set -eux
 # https://bugzilla.redhat.com/show_bug.cgi?id=1343138
 umount /mnt/sysimage/run
 # We don't have systemd and need to create manually
-install -d /mnt/sysimage/run/lock -m 0755 -o root -g root
+chroot /mnt/sysimage install -d /run/lock -m 0755 -o root -g root
 
-find /mnt/sysimage/usr/share/locale/* -not \( -name 'locale.alias' -o -name POSIX \) -delete
+# See: https://bugzilla.redhat.com/show_bug.cgi?id=1051816
+# NOTE: run this in nochroot because "find" does not exist in chroot
+KEEPLANG=en_US
+for dir in locale i18n; do
+    find /mnt/sysimage/usr/share/${dir} -mindepth  1 -maxdepth 1 -type d -not \( -name "${KEEPLANG}" -o -name POSIX \) -exec rm -rfv {} +
+done
+
 %end

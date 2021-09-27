@@ -1,7 +1,7 @@
 # AlmaLinux 8 kickstart file for x86_64 base Docker image
 
 # install
-url --url https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/
+url --url https://repo.almalinux.org/almalinux/8/BaseOS/$basearch/os/
 
 lang en_US.UTF-8
 keyboard us
@@ -19,38 +19,21 @@ rootpw --iscrypted --lock almalinux
 
 shutdown
 
-%packages --excludedocs --nocore --instLangs=en --excludeWeakdeps
-almalinux-release
-bash
+%packages --ignoremissing --excludedocs --instLangs=en --nocore --excludeWeakdeps
 coreutils-single
-crypto-policies-scripts
-findutils
-gdb-gdbserver
 glibc-minimal-langpack
-gzip
-libuser
-passwd
-procps-ng
-rootfiles
-systemd
-tar
-usermode
-vim-minimal
-virt-what
-which
-yum
--dnf-plugin-subscription-manager
+-crypto-policies-scripts
 -dosfstools
 -e2fsprogs
 -fuse-libs
 -gnupg2-smime
 -kernel
+-langpacks-en
 -libss
 -open-vm-tools
 -pinentry
 -qemu-guest-agent
 -shared-mime-info
--subscription-manager
 -trousers
 -xfsprogs
 -xkeyboard-config
@@ -75,31 +58,22 @@ echo '%_install_langs en_US.UTF-8' > /etc/rpm/macros.image-language-conf
 # force each container to have a unique machine-id
 > /etc/machine-id
 
-# create tmp directories because there is no tmpfs support in Docker
-umount /run
-systemd-tmpfiles --create --boot
-
-# disable login prompt, mounts and fix: https://bugzilla.redhat.com/show_bug.cgi?id=1472439
-systemctl mask systemd-remount-fs.service \
-               dev-hugepages.mount \
-               sys-fs-fuse-connections.mount \
-               systemd-logind.service \
-               getty.target \
-               console-getty.service \
-               systemd-udev-trigger.service \
-               systemd-udevd.service \
-               systemd-random-seed.service \
-               systemd-machine-id-commit.service
-
-KEEPLANG=en_US
-for dir in locale i18n; do
-    find /usr/share/${dir} -mindepth  1 -maxdepth 1 -type d -not \( -name "${KEEPLANG}" -o -name POSIX \) -exec rm -rfv {} +
-done
-
 # remove unnecessary files
-rm -f /var/lib/dnf \
+rm -rfv /var/lib/dnf \
       /run/nologin
-rm -fr /var/log/* \
+rm -rfv /var/log/* \
        /tmp/* /tmp/.* \
        /boot || true
+%end
+
+# NOTE: add --logfile=/mnt/sysimage/root/anaconda-post-nochroot.log for debugging
+%post --nochroot --erroronfail
+set -eux
+
+# https://bugzilla.redhat.com/show_bug.cgi?id=1343138
+umount /mnt/sysimage/run
+# We don't have systemd and need to create manually
+install -d /mnt/sysimage/run/lock -m 0755 -o root -g root
+
+find /mnt/sysimage/usr/share/locale/* -not \( -name 'locale.alias' -o -name POSIX \) -delete
 %end
