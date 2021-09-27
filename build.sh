@@ -7,7 +7,7 @@ set -euo pipefail
 
 RELEASE_VER='8'
 ARCH="$(uname -m)"
-OUTPUT_DIR='./result'
+OUTPUT_DIR='./result_${ARCH}'
 TYPE='default'
 
 OPTIND=1
@@ -39,7 +39,7 @@ while getopts "ho:t:" opt; do
             exit 0
             ;;
         o)
-            OUTPUT_DIR="${OPTARG}"
+            OUTPUT_DIR="${OPTARG}_${ARCH}"
             ;;
         t)
             case "${OPTARG}" in
@@ -65,7 +65,7 @@ fi
 
 
 IMAGE_NAME="almalinux-${RELEASE_VER}-docker.${TYPE}.tar.xz"
-KS_PATH="./kickstarts/almalinux-${RELEASE_VER}-${TYPE}.${ARCH}.ks"
+KS_PATH="./kickstarts/almalinux-${RELEASE_VER}-${TYPE}.ks"
 DOCKER_FILE=${OUTPUT_DIR}/Dockerfile
 
 
