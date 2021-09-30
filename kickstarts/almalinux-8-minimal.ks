@@ -56,7 +56,11 @@ rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux
 
 # install only en_US.UTF-8 locale files, see
 # https://fedoraproject.org/wiki/Changes/Glibc_locale_subpackaging for details
+LANG="en_US"
 echo '%_install_langs en_US.UTF-8' > /etc/rpm/macros.image-language-conf
+
+# https://bugzilla.redhat.com/show_bug.cgi?id=1727489
+echo 'LANG="C.UTF-8"' >  /etc/locale.conf
 
 # force each container to have a unique machine-id
 > /etc/machine-id
