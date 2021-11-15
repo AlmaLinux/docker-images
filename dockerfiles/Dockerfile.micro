@@ -1,4 +1,5 @@
 FROM almalinux AS system-build
+
 RUN mkdir -p /mnt/sys-root; \
     dnf install --installroot /mnt/sys-root coreutils-single glibc-minimal-langpack \
     --releasever 8 --setopt install_weak_deps=false --nodocs -y; \
