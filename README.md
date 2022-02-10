@@ -78,7 +78,7 @@ Use command below to create `default` docker files
 
 ```sh
 docker run --rm --privileged -v "$PWD:/build:z" \
-    -e KICKSTART_FILE=kickstarts/almalinux-8-default.x86_64.ks \
+    -e KICKSTART_FILE=kickstarts/almalinux-8-default.ks \
     -e IMAGE_NAME=almalinux-8-docker-default.x86_64.tar.gz \
     -e OUTPUT_DIR=default \
     -e BUILD_TYPE=default \
@@ -89,7 +89,7 @@ Use command below to create `base` docker files
 
 ```sh
 docker run --rm --privileged -v "$PWD:/build:z" \
-    -e KICKSTART_FILE=kickstarts/almalinux-8-base.x86_64.ks \
+    -e KICKSTART_FILE=kickstarts/almalinux-8-base.ks \
     -e IMAGE_NAME=almalinux-8-docker-base.x86_64.tar.gz \
     -e OUTPUT_DIR=base \
     -e BUILD_TYPE=base \
@@ -100,7 +100,7 @@ Use command below to create `init` docker files
 
 ```sh
 docker run --rm --privileged -v "$PWD:/build:z" \
-    -e KICKSTART_FILE=kickstarts/almalinux-8-init.x86_64.ks \
+    -e KICKSTART_FILE=kickstarts/almalinux-8-init.ks \
     -e IMAGE_NAME=almalinux-8-docker-init.x86_64.tar.gz \
     -e OUTPUT_DIR=init \
     -e BUILD_TYPE=init \
