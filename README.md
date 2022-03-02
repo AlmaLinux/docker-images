@@ -14,6 +14,7 @@ You need an **AlmaLinux system** with following RPM packages installed to run th
 * anaconda-tui
 * lorax
 * subscription-manager (make sure the `rhsm` service is running, see [rhbz#1872902](https://bugzilla.redhat.com/show_bug.cgi?id=1872902))
+* jq
 
 ```sh
 ./build.sh -h
@@ -49,6 +50,11 @@ Use command below to create `init` docker files for `almalinux:init`container im
 
 ```sh
 ./build.sh -o init -t init
+```
+Use command below to create all type of docker images
+
+```sh
+for type in default minimal base micro init; do ./build.sh -o $type -t $type; done
 ```
 
 ### Known issues
