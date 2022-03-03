@@ -6,8 +6,8 @@
 set -euo pipefail
 
 RELEASE_VER='8'
-ARCH="$(uname -m)"
-OUTPUT_DIR='./result_${ARCH}'
+ARCH=$(uname -m)
+OUTPUT_DIR="./result_${ARCH}"
 TYPE='default'
 
 OPTIND=1
@@ -58,13 +58,15 @@ while getopts "ho:t:" opt; do
     esac
 done
 
+OUTPUT_DIR="${OUTPUT_DIR}-${TYPE}"
+
 if [[ -d "${OUTPUT_DIR}" ]]; then
     echo "Error: output directory ${OUTPUT_DIR} already exists, please remove it" 1>&2
     exit 1
 fi
 
 
-IMAGE_NAME="almalinux-${RELEASE_VER}-docker.${TYPE}.tar.xz"
+IMAGE_NAME="almalinux-${RELEASE_VER}-docker-${ARCH}-${TYPE}.tar.xz"
 KS_PATH="./kickstarts/almalinux-${RELEASE_VER}-${TYPE}.ks"
 DOCKER_FILE=${OUTPUT_DIR}/Dockerfile
 
@@ -77,7 +79,7 @@ livemedia-creator --no-virt --make-tar --ks "${KS_PATH}" \
                   --anaconda-arg "--nosave all"
 
 # save list of packages installed
-jq .[] -r /tmp/dnf.cache/tempfiles.json | awk -F '/' '{print $5}' | sort > ${OUTPUT_DIR}/rpm-packages
+jq .[] -r /tmp/dnf.cache/tempfiles.json | awk -F '/' '{print $5}' | sort > ${OUTPUT_DIR}/rpm-packages-${ARCH}-${TYPE}
 
 STARTCMD=$( cat <<EOF
 
@@ -103,7 +105,7 @@ EOF
 )
 fi
 
-cat << EOF > "${OUTPUT_DIR}/Dockerfile"
+cat << EOF > "${OUTPUT_DIR}/Dockerfile-${ARCH}-${TYPE}"
 FROM scratch
 ADD ${IMAGE_NAME} /
 ${STARTCMD}
