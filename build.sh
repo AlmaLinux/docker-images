@@ -19,6 +19,7 @@ show_usage() {
     echo '  -h        show this message and exit'
     echo '  -o        output directory path. Default is "./result"'
     echo '  -t        image build type like "default", "init", "micro", "minimal". Default is "default"'
+    echo '  -v        AlmaLinux major release version, 8 or 9'
 }
 
 
@@ -32,14 +33,14 @@ save_logs() {
 }
 
 
-while getopts "ho:t:" opt; do
+while getopts "ho:t:v:" opt; do
     case "${opt}" in
         h)
             show_usage
             exit 0
             ;;
         o)
-            OUTPUT_DIR="${OPTARG}_${ARCH}"
+            OUTPUT_DIR="${OPTARG}"
             ;;
         t)
             case "${OPTARG}" in
@@ -52,13 +53,24 @@ while getopts "ho:t:" opt; do
                     ;;
             esac
             ;;
+        v)
+            case "${OPTARG}" in
+                8|9)
+                    RELEASE_VER="${OPTARG}"
+                    ;;
+                *)
+                    echo "Error: unsupported version number ${OPTARG}" 1>&2
+                    exit 1
+                    ;;
+            esac
+            ;;
         *)
             exit 1
             ;;
     esac
 done
 
-OUTPUT_DIR="${OUTPUT_DIR}-${TYPE}"
+OUTPUT_DIR="${OUTPUT_DIR}_${RELEASE_VER}_${ARCH}-${TYPE}"
 
 if [[ -d "${OUTPUT_DIR}" ]]; then
     echo "Error: output directory ${OUTPUT_DIR} already exists, please remove it" 1>&2
