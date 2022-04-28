@@ -21,7 +21,7 @@ rootpw --iscrypted --lock almalinux
 
 shutdown
 
-%packages --excludedocs --nocore --instLangs=en --exclude-weakdeps
+%packages --excludedocs --nocore --instLangs=en --excludeWeakdeps
 almalinux-release
 bash
 coreutils-single

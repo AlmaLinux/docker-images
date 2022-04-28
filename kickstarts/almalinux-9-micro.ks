@@ -21,7 +21,7 @@ rootpw --iscrypted --lock almalinux
 
 shutdown
 
-%packages --ignoremissing --excludedocs --instLangs=en --nocore --exclude-weakdeps
+%packages --ignoremissing --excludedocs --instLangs=en --nocore --excludeWeakdeps
 coreutils-single
 glibc-minimal-langpack
 -crypto-policies-scripts
