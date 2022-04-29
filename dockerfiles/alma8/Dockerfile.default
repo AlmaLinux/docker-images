@@ -1,0 +1,57 @@
+ARG SYSBASE=almalinux/8-base
+FROM ${SYSBASE} as system-build
+
+RUN mkdir /mnt/sys-root; \
+    dnf install \
+#    --nogpgcheck --repoid=AppStream --repoid=BaseOS \
+#    --repofrompath='BaseOS,https://repo.almalinux.org/almalinux/8.5/BaseOS/x86_64/os/' \
+#    --repofrompath='AppStream,https://repo.almalinux.org/almalinux/8.5/AppStream/x86_64/os/' \
+    --installroot /mnt/sys-root \
+    --releasever 8 \
+    --setopt install_weak_deps=false \
+    --nodocs -y \
+    binutils \
+    coreutils-single \
+    dnf \
+    findutils \
+    glibc-minimal-langpack \ 
+    hostname \
+    iputils \
+    langpacks-en \
+    less \
+    libcurl-minimal \
+    rootfiles \
+    tar \
+    vim-minimal \
+    yum \
+    xz \ 
+    ; \
+    dnf --installroot /mnt/sys-root clean all; \
+    rm -rf /mnt/sys-root/var/log/dnf* /mnt/sys-root/var/log/yum.*; \
+    rm -rf /mnt/sys-root/var/lib/dnf/history* /mnt/sys-root/var/log/hawkey.log  /mnt/sys-root/boot /mnt/sys-root/dev/null /mnt/sys-root/run/*; \
+    mkdir -p /mnt/sys-root/run/lock; \
+    # rm -rf /mnt/sys-root/var/cache/*  removed line
+    # cp /etc/yum.repos.d/*.repo /mnt/sys-root/etc/yum.repos.d/; \
+    # generate build time file for compatibility with CentOS
+    /bin/date +%Y%m%d_%H%M > /mnt/sys-root/etc/BUILDTIME; \
+    echo '%_install_langs C.utf8' > /mnt/sys-root/etc/rpm/macros.image-language-conf; \
+    echo 'LANG="C.utf8"' >  /mnt/sys-root/etc/locale.conf; \
+    echo 'container' > /mnt/sys-root/etc/dnf/vars/infra; \
+    rm -f /mnt/sys-root/etc/machine-id; \
+    touch /mnt/sys-root/etc/machine-id;
+
+# Almalinux default build
+FROM scratch 
+COPY --from=system-build /mnt/sys-root/ /
+
+ENV LANG=C.utf8
+
+RUN systemctl set-default multi-user.target; \
+    systemctl mask systemd-remount-fs.service \
+    dev-hugepages.mount \
+    sys-fs-fuse-connections.mount \
+    systemd-logind.service \
+    getty.target \
+    console-getty.service
+
+CMD ["/bin/bash"]
