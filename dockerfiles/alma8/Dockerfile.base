@@ -57,3 +57,4 @@ RUN systemctl set-default multi-user.target; \
     console-getty.service
 
 CMD ["/bin/bash"]
+

@@ -104,3 +104,4 @@ rm -fr /var/log/* \
        /tmp/* /tmp/.* \
        /boot || true
 %end
+

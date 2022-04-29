@@ -31,3 +31,4 @@ FROM scratch
 COPY --from=system-build /mnt/sys-root/ /
 
 CMD ["/bin/bash"]
+

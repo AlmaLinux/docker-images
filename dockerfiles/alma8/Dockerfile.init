@@ -64,3 +64,4 @@ RUN systemctl set-default multi-user.target; \
 CMD ["/sbin/init"]
 
 STOPSIGNAL SIGRTMIN+3
+
