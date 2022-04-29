@@ -83,3 +83,4 @@ install -d /mnt/sysimage/run/lock -m 0755 -o root -g root
 
 find /mnt/sysimage/usr/share/locale/* -not \( -name 'locale.alias' -o -name POSIX \) -delete
 %end
+
