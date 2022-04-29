@@ -30,3 +30,4 @@ FROM scratch
 COPY --from=builder /mnt/sysimage/ /
 
 CMD ["/bin/bash"]
+
