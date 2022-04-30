@@ -1,18 +1,17 @@
-# AlmaLinux 8 kickstart file for x86_64 base Docker image
+# AlmaLinux 9 kickstart file for x86_64 init Container image
 
-# install
-url --url https://repo.almalinux.org/almalinux/9/BaseOS/$basearch/kickstart/
-repo --name=BaseOS --baseurl=https://repo.almalinux.org/almalinux/9/BaseOS/$basearch/os/
-repo --name=AppStream --baseurl=https://repo.almalinux.org/almalinux/9/AppStream/$basearch/os/
+url --url https://repo.almalinux.org/almalinux/9.0-beta/BaseOS/$basearch/kickstart/
+repo --name=BaseOS --baseurl=https://repo.almalinux.org/almalinux/9.0-beta/BaseOS/$basearch/os/
+repo --name=AppStream --baseurl=https://repo.almalinux.org/almalinux/9.0-beta/AppStream/$basearch/os/
 
-lang en_US.UTF-8
+lang C.UTF-8
 keyboard us
 timezone --nontp --utc UTC
 
 network --activate --bootproto=dhcp --device=link --onboot=on
 selinux --disabled
 
-bootloader --disable
+bootloader --disabled
 zerombr
 clearpart --all --initlabel
 autopart --fstype=ext4 --type=plain --nohome --noboot --noswap
@@ -26,32 +25,29 @@ almalinux-release
 bash
 coreutils-single
 crypto-policies-scripts
+curl-minimal
 findutils
 gdb-gdbserver
 glibc-minimal-langpack
 gzip
-libuser
-passwd
+libcurl-minimal
+libusbx
 procps-ng
 rootfiles
-systemd
 tar
 usermode
 vim-minimal
 virt-what
-which
 yum
--dnf-plugin-subscription-manager
 -dosfstools
 -e2fsprogs
--fuse-libs
 -gnupg2-smime
 -kernel
+-langpacks-*
+-langpacks-en
 -libss
--open-vm-tools
 -pinentry
 -qemu-guest-agent
--shared-mime-info
 -subscription-manager
 -trousers
 -xfsprogs
@@ -64,16 +60,19 @@ yum
 # generate build time file for compatibility with CentOS
 /bin/date +%Y%m%d_%H%M > /etc/BUILDTIME
 
+# Change format of the RPM database from Berkeley DB to a new SQLite format
+rpmdb --rebuilddb
+
 # set DNF infra variable to container for compatibility with CentOS
 echo 'container' > /etc/dnf/vars/infra
 
 # import AlmaLinux PGP key
 rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux
 
-# install only en_US.UTF-8 locale files, see
+# install only C.UTF-8 locale files, see
 # https://fedoraproject.org/wiki/Changes/Glibc_locale_subpackaging for details
-LANG="en_US"
-echo '%_install_langs en_US.UTF-8' > /etc/rpm/macros.image-language-conf
+LANG="C.utf8"
+echo "%_install_langs $LANG" > /etc/rpm/macros.image-language-conf
 
 # https://bugzilla.redhat.com/show_bug.cgi?id=1727489
 echo 'LANG="C.UTF-8"' >  /etc/locale.conf
@@ -109,4 +108,3 @@ rm -fr /var/log/* \
        /tmp/* /tmp/.* \
        /boot || true
 %end
-
