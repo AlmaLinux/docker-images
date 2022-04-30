@@ -1,18 +1,17 @@
-# AlmaLinux 8 kickstart file for x86_64 base Docker image
+# AlmaLinux 9 kickstart file for x86_64 default Container image
 
-# install
-url --url https://repo.almalinux.org/almalinux/9/BaseOS/$basearch/kickstart/
-repo --name=BaseOS --baseurl=https://repo.almalinux.org/almalinux/9/BaseOS/$basearch/os/
-repo --name=AppStream --baseurl=https://repo.almalinux.org/almalinux/9/AppStream/$basearch/os/
+url --url https://repo.almalinux.org/almalinux/9.0-beta/BaseOS/$basearch/kickstart/
+repo --name=BaseOS --baseurl=https://repo.almalinux.org/almalinux/9.0-beta/BaseOS/$basearch/os/
+repo --name=AppStream --baseurl=https://repo.almalinux.org/almalinux/9.0-beta/AppStream/$basearch/os/
 
-lang en_US.UTF-8
+lang C.UTF-8
 keyboard us
 timezone --nontp --utc UTC
 
 network --activate --bootproto=dhcp --device=link --onboot=on
 selinux --disabled
 
-bootloader --disable
+bootloader --disabled
 zerombr
 clearpart --all --initlabel
 autopart --fstype=ext4 --type=plain --nohome --noboot --noswap
@@ -21,43 +20,37 @@ rootpw --iscrypted --lock almalinux
 
 shutdown
 
-%packages --ignoremissing --excludedocs --instLangs=en --nocore --exclude-weakdeps
+%packages --excludedocs --nocore --instLangs=en --excludeWeakdeps
 almalinux-release
 bash
-binutils
 coreutils-single
-dnf
+crypto-policies-scripts
+curl-minimal
 findutils
+gdb-gdbserver
 glibc-minimal-langpack
-hostname
-iputils
-less
+gzip
+libcurl-minimal
+libusbx
+procps-ng
 rootfiles
 tar
+usermode
 vim-minimal
+virt-what
 yum
-xz
-
--brotli
--crypto-policies-scripts
--firewalld
--diffutils
--elfutils-debuginfod-client
--gettext*
--glibc-langpack-en
+-dosfstools
+-e2fsprogs
 -gnupg2-smime
--grub\*
--iptables
 -kernel
--libevent
--openssl
--os-prober
--open-vm-tools
+-langpacks-*
+-langpacks-en
+-libss
 -pinentry
--platform-python-pip
--shared-mime-info
+-qemu-guest-agent
+-subscription-manager
 -trousers
--unbound-libs
+-xfsprogs
 -xkeyboard-config
 %end
 
@@ -67,19 +60,23 @@ xz
 # generate build time file for compatibility with CentOS
 /bin/date +%Y%m%d_%H%M > /etc/BUILDTIME
 
+# Change format of the RPM database from Berkeley DB to a new SQLite format
+rpmdb --rebuilddb
+
 # set DNF infra variable to container for compatibility with CentOS
 echo 'container' > /etc/dnf/vars/infra
 
 # import AlmaLinux PGP key
 rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux
 
-# install only en_US.UTF-8 locale files, see
+# install only C.UTF-8 locale files, see
 # https://fedoraproject.org/wiki/Changes/Glibc_locale_subpackaging for details
-LANG="en_US"
-echo '%_install_langs en_US.UTF-8' > /etc/rpm/macros.image-language-conf
+LANG="C.utf8"
+echo "%_install_langs $LANG" > /etc/rpm/macros.image-language-conf
 
 # https://bugzilla.redhat.com/show_bug.cgi?id=1727489
 echo 'LANG="C.UTF-8"' >  /etc/locale.conf
+
 # force each container to have a unique machine-id
 > /etc/machine-id
 
@@ -87,19 +84,23 @@ echo 'LANG="C.UTF-8"' >  /etc/locale.conf
 umount /run
 systemd-tmpfiles --create --boot
 
-# disable login prompt and mounts
-systemctl mask console-getty.service \
+# disable login prompt, mounts and fix: https://bugzilla.redhat.com/show_bug.cgi?id=1472439
+systemctl mask systemd-remount-fs.service \
                dev-hugepages.mount \
-               getty.target \
-               systemd-logind.service \
                sys-fs-fuse-connections.mount \
-               systemd-remount-fs.service
+               systemd-logind.service \
+               getty.target \
+               console-getty.service
+
+KEEPLANG=en_US
+for dir in locale i18n; do
+    find /usr/share/${dir} -mindepth  1 -maxdepth 1 -type d -not \( -name "${KEEPLANG}" -o -name POSIX \) -exec rm -rfv {} +
+done
 
 # remove unnecessary files
-rm -f /var/lib/dnf/history.* \
+rm -f /var/lib/dnf \
       /run/nologin
 rm -fr /var/log/* \
        /tmp/* /tmp/.* \
        /boot || true
 %end
-
