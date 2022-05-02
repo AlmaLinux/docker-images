@@ -1,8 +1,8 @@
 # AlmaLinux 9 kickstart file for x86_64 default Container image
 
-url --url https://repo.almalinux.org/almalinux/9.0-beta/BaseOS/$basearch/kickstart/
-repo --name=BaseOS --baseurl=https://repo.almalinux.org/almalinux/9.0-beta/BaseOS/$basearch/os/
-repo --name=AppStream --baseurl=https://repo.almalinux.org/almalinux/9.0-beta/AppStream/$basearch/os/
+url --url https://repo.almalinux.org/almalinux/9/BaseOS/$basearch/kickstart/
+repo --name=BaseOS --baseurl=https://repo.almalinux.org/almalinux/9/BaseOS/$basearch/os/
+repo --name=AppStream --baseurl=https://repo.almalinux.org/almalinux/9/AppStream/$basearch/os/
 
 lang C.UTF-8
 keyboard us
@@ -23,22 +23,21 @@ shutdown
 %packages --excludedocs --nocore --instLangs=en --excludeWeakdeps
 almalinux-release
 bash
+binutils
 coreutils-single
 crypto-policies-scripts
 curl-minimal
 findutils
-gdb-gdbserver
+hostname
+iputils
 glibc-minimal-langpack
-gzip
+less
 libcurl-minimal
-libusbx
-procps-ng
 rootfiles
 tar
-usermode
 vim-minimal
-virt-what
 yum
+xz
 -dosfstools
 -e2fsprogs
 -gnupg2-smime
@@ -46,6 +45,7 @@ yum
 -langpacks-*
 -langpacks-en
 -libss
+-open-vm-tools
 -pinentry
 -qemu-guest-agent
 -subscription-manager

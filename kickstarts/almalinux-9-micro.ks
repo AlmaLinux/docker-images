@@ -1,8 +1,8 @@
 # AlmaLinux 9 kickstart file for x86_64 micro Container image
 
-url --url https://repo.almalinux.org/almalinux/9.0-beta/BaseOS/$basearch/kickstart/
-repo --name=BaseOS --baseurl=https://repo.almalinux.org/almalinux/9.0-beta/BaseOS/$basearch/os/
-repo --name=AppStream --baseurl=https://repo.almalinux.org/almalinux/9.0-beta/AppStream/$basearch/os/
+url --url https://repo.almalinux.org/almalinux/9/BaseOS/$basearch/kickstart/
+repo --name=BaseOS --baseurl=https://repo.almalinux.org/almalinux/9/BaseOS/$basearch/os/
+repo --name=AppStream --baseurl=https://repo.almalinux.org/almalinux/9/AppStream/$basearch/os/
 
 lang C.UTF-8
 keyboard us
