@@ -23,39 +23,42 @@ Usage: build.sh [OPTION]...
   -h        show this message and exit
   -o        output directory path. Default is "./result"
   -t        build type. Possible options are base, default, init, micro and minimal
+  -v        AlmaLinux major release version, 8 or 9, Default value is 8
+}
+
 ```
 
 Use command below to create `default` docker files for `almalinux:8`container image
 
 ```sh
-./build.sh -o default -t default
+./build.sh -o default -t default -v 8
 ```
 
 Use command below to create `minimal` docker files for `almalinux:minimal`container image
 
 ```sh
-./build.sh -o minimal -t minimal
+./build.sh -o minimal -t minimal -v 8
 ```
+
 Use command below to create `base` docker files for `almalinux:base`container image
 
 ```sh
-./build.sh -o base -t base
+./build.sh -o base -t base -v 8
 ```
+
 Use command below to create `micro` docker files for `almalinux:micro`container image
 
 ```sh
-./build.sh -o micro -t micro
+./build.sh -o micro -t micro -v 8
 ```
+
 Use command below to create `init` docker files for `almalinux:init`container image
 
 ```sh
-./build.sh -o init -t init
+./build.sh -o init -t init -v 8
 ```
-Use command below to create all type of docker images
 
-```sh
-for type in default minimal base micro init; do ./build.sh -o $type -t $type; done
-```
+Use `sudo ./build-all-8.sh` for building all images of Almalinux 8. Use `sudo ./build-all-8.sh` for building all images of Almalinux 9.
 
 ### Known issues
 
