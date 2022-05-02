@@ -23,21 +23,21 @@ shutdown
 %packages --excludedocs --nocore --instLangs=en --excludeWeakdeps
 almalinux-release
 bash
+binutils
 coreutils-single
 crypto-policies-scripts
 curl-minimal
 findutils
-gdb-gdbserver
+hostname
+iputils
 glibc-minimal-langpack
-gzip
+less
 libcurl-minimal
-libusbx
 rootfiles
 tar
-usermode
 vim-minimal
-virt-what
 yum
+xz
 -dosfstools
 -e2fsprogs
 -gnupg2-smime
