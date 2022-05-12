@@ -1,0 +1,6 @@
+FROM scratch
+ADD almalinux-8-docker-ppc64le-init.tar.xz /
+
+CMD ["/sbin/init"]
+
+STOPSIGNAL SIGRTMIN+3
