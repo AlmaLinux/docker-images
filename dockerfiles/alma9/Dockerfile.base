@@ -4,8 +4,10 @@ FROM ${SYSBASE} as system-build
 RUN mkdir -p /mnt/sys-root; \
     dnf install \
     --nogpgcheck --repoid=AppStream --repoid=BaseOS \
-    --repofrompath='BaseOS,https://repo.almalinux.org/almalinux/9/BaseOS/$basearch/os/' \
-    --repofrompath='AppStream,https://repo.almalinux.org/almalinux/9/AppStream/$basearch/os/' \
+#    --repofrompath='BaseOS,https://repo.almalinux.org/almalinux/9/BaseOS/$basearch/os/' \
+#    --repofrompath='AppStream,https://repo.almalinux.org/almalinux/9/AppStream/$basearch/os/' \
+    --repofrompath='BaseOS,http://3.222.218.138/cloudlinux/almalinux/latest/compose/BaseOS/$basearch/os/' \
+    --repofrompath='AppStream,http://3.222.218.138/cloudlinux/almalinux/latest/compose/AppStream/$basearch/os/' \
     --installroot /mnt/sys-root --releasever 9 --setopt install_weak_deps=false --nodocs -y \
     coreutils-single \
     crypto-policies-scripts \
