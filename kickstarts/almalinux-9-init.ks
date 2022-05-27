@@ -42,6 +42,7 @@ yum
 -dosfstools
 -e2fsprogs
 -gnupg2-smime
+-hyperv*
 -kernel
 -langpacks-*
 -langpacks-en
