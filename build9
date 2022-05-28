@@ -1,0 +1,37 @@
+#!/bin/bash
+# description: AlmaLinux base Docker image rootfs and Dockerfile generation
+#              script.
+# license: MIT.
+
+set -euo pipefail
+for type in default minimal base micro init; 
+do
+    for arch in amd64 arm64 ppc64le s390x;
+
+    do
+        march=$arch;
+        if [[ $arch == 'arm64' ]]; then
+            march='aarch64'
+        fi    
+        if [[ $arch == 'amd64' ]]; then
+            march='x86_64'
+        fi    
+        docker build --squash --platform=linux/$arch -t temp/staging-alma9:$arch-$type-20220527 -f Dockerfile-$march-$type . 
+        #docker push srbala/staging-alma9:$arch-$type-20220527
+        #docker pull srbala/staging-alma9:$arch-$type-20220527
+        #./gen-rootfs srbala/staging-alma9:$arch-$type-20220527 $arch $type 
+    done
+done
+#        docker build --no-cache --platform=linux/$arch -t srbala/staging-alma9:$arch-$type20220527 -f Dockerfile.$type . 
+#        docker push srbala/staging-alma9:$arch-$type-20220527
+
+# for type in micro minimal default base init; 
+
+# do 
+#     # docker manifest rm srbala/staging-alma9:$type-20220527; \
+#     docker manifest create srbala/staging-alma9:$type-20220527 \
+#         srbala/staging-alma9:amd64-$type-20220527 \
+#         srbala/staging-alma9:arm64-$type-20220527 \
+#         srbala/staging-alma9:ppc64le-$type-20220527; \
+#     docker manifest push srbala/staging-alma9:$type-20220527
+# done
