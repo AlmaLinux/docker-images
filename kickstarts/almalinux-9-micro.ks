@@ -28,6 +28,7 @@ glibc-minimal-langpack
 -e2fsprogs
 -fuse-libs
 -gnupg2-smime
+-hyperv*
 -kernel
 -langpacks-en
 -libss
