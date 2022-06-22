@@ -58,7 +58,7 @@ Use command below to create `init` docker files for `almalinux:init`container im
 ./build.sh -o init -t init -v 8
 ```
 
-Use `sudo ./build-all-8.sh` for building all images of Almalinux 8. Use `sudo ./build-all-8.sh` for building all images of Almalinux 9.
+Use `sudo ./build-all-8.sh` for building all images of Almalinux 8. Use `sudo ./build-all-9.sh` for building all images of Almalinux 9.
 
 ### Known issues
 
