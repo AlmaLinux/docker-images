@@ -1,0 +1,134 @@
+#!/bin/bash
+# base script
+set -xeuo pipefail
+
+ARCH="$(uname -m)"
+MANIFEST=0
+TYPE=''
+
+OPTIND=1
+
+
+show_usage() {
+    echo -e 'Releases AlmaLinux OS UBI-compatible container images\n'
+    echo -e 'Usage: release.sh [OPTION]...\n'
+    echo '  -h        show this message and exit'
+    echo '  -t        image type: default, base, init, micro, minimal.'
+    echo '  -m        build and release multi-architecture manifest'
+}
+
+
+get_arch_repo_name() {
+    local -r arch="${1}"
+    case "${arch}" in
+        x86_64)
+            echo 'amd64';;
+        aarch64)
+            echo 'arm64v8';;
+        *)
+            echo "Error: unsupported architecture ${arch}" 1>&2
+            exit 2
+            ;;
+    esac
+}
+
+
+build_image() {
+    local -r arch="${1}"
+    local -r img_type="${2}"
+    local repo_arch
+    repo_arch=$(get_arch_repo_name "${ARCH}")
+    if [ "${img_type}" == 'minimal' ]; then
+        docker pull almalinux:8-minimal
+        docker tag almalinux:8-minimal "quay.io/almalinux/${repo_arch}:8-${img_type}"
+        docker tag almalinux:8-minimal "quay.io/almalinux/${repo_arch}:8.4-${img_type}"
+        docker tag almalinux:8-minimal "quay.io/almalinux/${repo_arch}:${img_type}"
+        docker tag almalinux:8-minimal "almalinux/${repo_arch}:8-${img_type}"
+        docker push "quay.io/almalinux/${repo_arch}:8.4-${img_type}"
+        docker push "quay.io/almalinux/${repo_arch}:${img_type}"
+    elif [ "${img_type}" == 'default' ]; then
+        docker pull almalinux:8
+        for tag in latest 8 8.4; do
+            docker tag almalinux:8 "quay.io/almalinux/${repo_arch}:${tag}"
+            docker push "quay.io/almalinux/${repo_arch}:${tag}"
+        done
+        return
+    else
+        # TODO: what if a local branch is outdated? We need to check that somehow
+        git checkout "almalinux-8-${arch}-${img_type}"
+        docker build -t "quay.io/almalinux/${repo_arch}:8-${img_type}" \
+                     -t "almalinux/${repo_arch}:8-${img_type}" .
+    fi
+    docker push "quay.io/almalinux/${repo_arch}:8-${img_type}"
+    docker push "almalinux/${repo_arch}:8-${img_type}"
+}
+
+
+build_manifest() {
+    local -r img_type="${1}"
+    for tag in latest 8 8.4; do
+        if [ "${img_type}" == 'default' ]; then
+            docker manifest create "quay.io/almalinux/almalinux:${tag}" \
+                --amend "quay.io/almalinux/amd64:8" \
+                --amend "quay.io/almalinux/arm64v8:8"
+            docker manifest push "quay.io/almalinux/almalinux:${tag}"
+        else
+            docker manifest create "quay.io/almalinux/8-${img_type}:${tag}" \
+                --amend "quay.io/almalinux/amd64:8-${img_type}" \
+                --amend "quay.io/almalinux/arm64v8:8-${img_type}"
+            docker manifest push "quay.io/almalinux/8-${img_type}:${tag}"
+
+            docker manifest create "almalinux/8-${img_type}:${tag}" \
+                --amend "almalinux/amd64:8-${img_type}" \
+                --amend "almalinux/arm64v8:8-${img_type}"
+            docker manifest push "almalinux/8-${img_type}:${tag}"
+
+            if [ "${img_type}" == 'minimal' ]; then
+                for tag in minimal 8-minimal 8.4-minimal; do
+                    docker manifest create "quay.io/almalinux/almalinux:${tag}" \
+                        --amend "quay.io/almalinux/amd64:8-${img_type}" \
+                        --amend "quay.io/almalinux/arm64v8:8-${img_type}"
+                    docker manifest push "quay.io/almalinux/almalinux:${tag}"
+                done
+            fi
+        fi
+    done
+}
+
+while getopts "ht:m" opt; do
+    case "${opt}" in
+        h)
+            show_usage
+            exit 0
+            ;;
+        t)
+            case "${OPTARG}" in
+                default|base|init|micro|minimal)
+                    TYPE="${OPTARG}"
+                    ;;
+                *)
+                    echo "Error: unsupported image type ${OPTARG}" 1>&2
+                    exit 1
+                    ;;
+            esac
+            ;;
+        m)
+            MANIFEST=1
+            ;;
+        *)
+            exit 1
+            ;;
+    esac
+done
+
+if [ -z "${TYPE}" ]; then
+    echo  "Error: image type is required"
+    exit 1
+fi
+
+if [ ${MANIFEST} -eq 1 ]; then
+    build_manifest "${TYPE}"
+else
+    build_image "${ARCH}" "${TYPE}"
+fi
+

@@ -1,0 +1,39 @@
+#!/bin/bash
+#
+# Author: Bala Raman <srbala@gmail.com>
+# 
+# Extract/Create RootFS image file from docker image
+# ./gen-rootfs image_name filename_subscript
+# 
+TCNT=$(docker inspect $1 | jq '.[] | .RootFS.Layers | length')
+TNAME=$2
+echo "Found $TCNT layer(s) in image '$1'."
+if [ $TCNT -ne 1 ]; then
+    echo "Only single layer image is supported at this time. Use '--squash' option to create single layer image."
+    exit
+fi
+echo "Setting up temp work dir ..."
+mkdir -p wsl-temp && cd wsl-temp
+echo "Saving docker/container image ..."
+docker save $1 -o wsltemp.tar
+TWSL=$(tar -tf wsltemp.tar | grep layer)
+TCNT=$(echo $TWSL | tr ' ' '\n' | grep layer | wc -l | xargs)
+echo "Found $TCNT layer(s) in image '$1'."
+if [ $TCNT -eq 1 ]; then
+    echo "Extracting rootfs $TWSL ..."
+    tar -xf wsltemp.tar $TWSL
+    mv $TWSL $TNAME.tar
+    echo "Compressing rootfs ..."
+    xz $TNAME.tar
+    mv $TNAME* ../
+    cd ..
+    F1=$(ls | grep $2)
+    TMSG="Task complete. Output rootfs located at $PWD/$F1"
+else
+    echo "Only single layer image is supported at this time. Use '--squash' option to create single layer image."
+    cd ..
+    TMSG="Error Exit, task complete."
+fi
+echo "Perform cleanup ..."
+rm -rf wsl-temp
+echo $TMSG

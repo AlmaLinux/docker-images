@@ -1,0 +1,14 @@
+#!/bin/bash
+# description: Build rootfs from repos based on environment variables
+# license: MIT.
+
+source .env_al8_build
+source ./image_build
+
+# build_images "9" "0" "s390x" "micro" "srbala1"  20220527 "repos"
+build_images $al_os_version $al_rel_version $al_arch $al_types $al_repo_prefix $al_date_suffix "repos"
+
+echo ""
+echo "Moving built images to work"
+mkdir -p work
+mv *.xz work

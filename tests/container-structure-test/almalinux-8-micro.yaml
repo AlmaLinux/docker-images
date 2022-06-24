@@ -1,0 +1,37 @@
+schemaVersion: '2.0.0' # Make sure to test the latest schema version
+commandTests:
+- name: 'AlmaLinux Release check'
+  command: 'cat'
+  args: ['/etc/redhat-release']
+  expectedOutput: ['AlmaLinux release.*']
+- name: 'path'
+  command: 'sh'
+  args: ['-c', 'echo $PATH']
+  expectedOutput: ['/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin']
+fileContentTests:  
+- name: 'Passwd file'
+  expectedContents: ['root:x:0:0:root:/root:/bin/bash']
+  path: '/etc/passwd'
+fileExistenceTests:
+- name: 'Root'
+  path: '/'
+  shouldExist: true
+  uid: 0
+  gid: 0
+- name: 'Date'
+  path: '/bin/date'
+  isExecutableBy: 'owner'
+- name: 'Hosts File'
+  path: '/etc/hosts'
+  shouldExist: true
+- name: 'Check Network'
+  path: '/etc/networks'
+  shouldExist: true
+- name: 'Dummy File'
+  path: '/etc/dummy'
+  shouldExist: false
+licenseTests:
+- debian: false
+  files:
+    - "/usr/share/licenses/almalinux-release/LICENSE"
+    - "/usr/share/licenses/coreutils-single/COPYING"

@@ -1,15 +1,15 @@
-ARG SYSBASE=almalinux
+ARG SYSBASE=almalinux:9
 FROM ${SYSBASE} as system-build
 
 RUN mkdir /mnt/sys-root; \
-    dnf install \
-    --nogpgcheck --repoid=AppStream --repoid=BaseOS \
-    --repofrompath='BaseOS,https://repo.almalinux.org/almalinux/9/BaseOS/$basearch/os/' \
-    --repofrompath='AppStream,https://repo.almalinux.org/almalinux/9/AppStream/$basearch/os/' \
+    dnf install -y \
+#    --nogpgcheck --repoid=AppStream --repoid=BaseOS \
+#    --repofrompath='BaseOS,https://repo.almalinux.org/almalinux/9/BaseOS/$basearch/os/' \
+#    --repofrompath='AppStream,https://repo.almalinux.org/almalinux/9/AppStream/$basearch/os/' \
     --installroot /mnt/sys-root \
     --releasever 9 \
     --setopt install_weak_deps=false \
-    --nodocs -y \
+    --nodocs \
     coreutils-single \
     glibc-minimal-langpack; \
     dnf --installroot /mnt/sys-root clean all; \

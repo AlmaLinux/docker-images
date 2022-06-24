@@ -1,0 +1,16 @@
+FROM almalinux:9
+
+LABEL org.opencontainers.image.authors="Bala Raman <bala@almalinux.org>"
+
+RUN dnf install -y python3-pip yum-utils initscripts; \
+    yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo; \
+    dnf install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin ; \
+    pip install --no-cache-dir docker; \
+    pip install --no-cache-dir pytest-testinfra; 
+# patch infra until  PR https://github.com/pytest-dev/pytest-testinfra/pull/655 approved and merged  
+# RUN sed -i 's/"centos",/"almalinux", "centos",/' /usr/local/lib/python3.9/site-packages/testinfra/modules/package.py &>/dev/null; \
+#     sed -i 's/"fedora",/"fedora", "rocky",/' /usr/local/lib/python3.9/site-packages/testinfra/modules/package.py &>/dev/null; 
+
+WORKDIR /code
+
+CMD ["pytest", "--verbose"]

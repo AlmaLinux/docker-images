@@ -1,4 +1,4 @@
-ARG SYSBASE=almalinux/8-base
+ARG SYSBASE=almalinux:8
 FROM ${SYSBASE} as system-build
 
 RUN mkdir -p /mnt/sys-root; \

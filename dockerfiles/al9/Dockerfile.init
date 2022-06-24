@@ -1,8 +1,15 @@
-ARG SYSBASE=almalinux/8-base
+ARG SYSBASE=almalinux:9
 FROM ${SYSBASE} as system-build
 
-RUN mkdir -p /mnt/sys-root; \
-    dnf install --installroot /mnt/sys-root --releasever 8 --setopt install_weak_deps=false --nodocs -y \
+RUN mkdir /mnt/sys-root; \
+    dnf install -y \
+#    --nogpgcheck --repoid=AppStream --repoid=BaseOS \
+#    --repofrompath='BaseOS,https://repo.almalinux.org/almalinux/9/BaseOS/$basearch/os/' \
+#    --repofrompath='AppStream,https://repo.almalinux.org/almalinux/9/AppStream/$basearch/os/' \
+    --installroot /mnt/sys-root \
+    --releasever 9 \
+    --setopt install_weak_deps=false \
+    --nodocs \
     coreutils-single \
     crypto-policies-scripts \
     findutils \
@@ -11,6 +18,7 @@ RUN mkdir -p /mnt/sys-root; \
     gzip \
     libuser \
     passwd \
+    procps-ng \ 
     rootfiles \
     systemd \
     tar \
@@ -23,7 +31,7 @@ RUN mkdir -p /mnt/sys-root; \
     iptables-libs \
     langpacks-en \
     libibverbs \
-    libmetalink \
+#    libmetalink \
     libnl3 \
     libpcap \
     pciutils \
@@ -46,7 +54,7 @@ FROM scratch
 
 COPY --from=system-build /mnt/sys-root/ /
 
-ENV LANG=C.utf8
+ENV LANG=C.utf8 
 
 RUN systemctl set-default multi-user.target; \
     systemctl mask systemd-remount-fs.service \
@@ -54,7 +62,13 @@ RUN systemctl set-default multi-user.target; \
     sys-fs-fuse-connections.mount \
     systemd-logind.service \
     getty.target \
-    console-getty.service
+    console-getty.service \
+    systemd-udev-trigger.service \
+    systemd-udevd.service \
+    systemd-random-seed.service \
+    systemd-machine-id-commit.service
 
-CMD ["/bin/bash"]
+CMD ["/sbin/init"]
+
+STOPSIGNAL SIGRTMIN+3
 
