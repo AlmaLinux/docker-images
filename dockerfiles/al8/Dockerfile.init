@@ -61,7 +61,12 @@ RUN systemctl set-default multi-user.target; \
     systemd-random-seed.service \
     systemd-machine-id-commit.service
 
+FROM scratch
+
+COPY --from=stage2 / /
+
+ENV LANG=C.utf8 
+
 CMD ["/sbin/init"]
 
 STOPSIGNAL SIGRTMIN+3
-
