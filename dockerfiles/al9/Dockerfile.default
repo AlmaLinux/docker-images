@@ -41,10 +41,8 @@ RUN mkdir /mnt/sys-root; \
     touch /mnt/sys-root/etc/machine-id;
 
 # Almalinux default build
-FROM scratch 
+FROM scratch as stage2
 COPY --from=system-build /mnt/sys-root/ /
-
-ENV LANG=C.utf8
 
 RUN systemctl set-default multi-user.target; \
     systemctl mask systemd-remount-fs.service \
@@ -53,6 +51,11 @@ RUN systemctl set-default multi-user.target; \
     systemd-logind.service \
     getty.target \
     console-getty.service
+
+FROM scratch 
+COPY --from=stage2 / /
+
+ENV LANG=C.utf8
 
 CMD ["/bin/bash"]
 
