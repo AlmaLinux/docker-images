@@ -56,12 +56,4 @@ COPY --from=stage2 / /
 
 ENV LANG=C.utf8
 
-RUN systemctl set-default multi-user.target; \
-    systemctl mask systemd-remount-fs.service \
-    dev-hugepages.mount \
-    sys-fs-fuse-connections.mount \
-    systemd-logind.service \
-    getty.target \
-    console-getty.service
-
 CMD ["/bin/bash"]
