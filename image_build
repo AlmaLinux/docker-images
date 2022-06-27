@@ -194,9 +194,9 @@ build_single_image_using_repos(){
     local -r arch_platform=$(get_platform_arch "${2}")
     local -r type="${3}"
     local -r tag="${4}"
-    local -r build_arg="--squash"
+    # local -r build_arg="--squash"
     echo "Building for arch: $arch_platform"
-    docker build "$build_arg" "--platform=linux/$arch_platform" -t "${tag}" -f "dockerfiles/al${al_version}/Dockerfile.${type}" .
+    docker build "--platform=linux/$arch_platform" -t "${tag}" -f "dockerfiles/al${al_version}/Dockerfile.${type}" .
 }
 
 #
@@ -330,7 +330,9 @@ build_ubi_manifest() {
             part2="$part2 --amend $repo_prefix/ppc64le:$tag_suffix"
             if [ "${al_version}" == '9' ]; then
                 part2="$part2 --amend $repo_prefix/s390x:$tag_suffix"
-            fi    
+            fi   
+            # rm returns error when repo/tag not found 
+            # docker manifest rm $part1
             docker manifest create $part1 $part2
             docker manifest push $part1
         done   
@@ -367,6 +369,11 @@ build_images () {
     if [[ -z "$type_list" ]]; then
         echo "Validating input type failed ... ${input_type}" 
         exit 2
+    fi
+
+    # Temp hack to cleanup manifest
+    if [[ "$from" == "rootfs" ]]; then
+        rm -rf ~/.docker/manifests
     fi
 
     status=$(check_build_support_arch ${1} ${3})
