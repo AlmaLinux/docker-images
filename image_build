@@ -1,0 +1,489 @@
+#!/bin/bash
+# base script
+set -euo pipefail
+
+ARCH="$(uname -m)"
+MANIFEST=0
+TYPE=''
+
+OPTIND=1
+
+#
+# Return OS Release name like `AlmaLinux release 9.0 (Emerald Puma)` for audit log
+#
+get_os_release() {
+    local -r image=${1}
+    # issue docker pull, redirect messages to null
+    docker pull ${image} > /dev/null
+    local rel=$(docker run --rm -it ${image} cat /etc/system-release)
+    echo $rel
+}
+
+get_image_hash() {
+    local -r image=${1}
+    # issue docker pull, redirect messages to null
+    docker pull ${image} > /dev/null
+    local hash=$(docker inspect ${image} | jq '.[] .Id' | tr -d '"')
+    echo $hash
+}
+
+get_os_release_version() {
+    local -r image=${1}
+    # issue docker pull, redirect messages to null
+    docker pull ${image} > /dev/null
+    local rel=$(docker run --rm ${image} awk '{ print $3 }' /etc/system-release )
+    # local rel=$(docker run --rm ${image} awk -F= '$1=="VERSION_ID" { print $2 ;}' /etc/os-release | tr -d '"')
+    echo $rel
+}
+
+#
+# Provide arch names for registory path
+#
+# used to create arch specific tag path
+get_registry_arch() {
+    local -r arch="${1}"
+    case "${arch}" in
+        i386|amd64|arm64v8|ppc64le|s390x)
+            echo "${arch}";;
+        x86_64)
+            echo 'amd64';;
+        aarch64|arm64|arm64/v8)
+            echo 'arm64v8';;
+        i386|i486|i586|i686|x86)
+            echo 'i386';;
+        *)
+            echo "Error: unsupported architecture ${arch}" 1>&2
+            exit 2
+            ;;
+    esac
+}
+
+#
+# Provide platform arch for container param input
+#
+get_platform_arch() {
+    local -r arch="${1}"
+    case "${arch}" in
+        386|amd64|arm64|arm64/v8|ppc64le|s390x)
+            echo "${arch}";;
+        x86_64)
+            echo 'amd64';;
+        aarch64)
+            echo 'arm64/v8';;
+        i386|i486|i586|i686|x86)
+            echo '386';;
+        *)
+            echo "Error: unsupported architecture ${arch}" 1>&2
+            exit 2
+            ;;
+    esac
+}
+
+#
+# get build arch
+#
+# used to populate arch list for processing single or all
+get_build_arch() {
+    local -r arch="${2}"
+    local -r version=${1}
+    case "${arch}" in
+        x86_64|aarch64|ppc64le|s390x)
+            echo "${arch}";;    
+        all)
+            case "${version}" in
+                8)
+                    echo 'x86_64 aarch64 ppc64le';;
+                9)
+                    echo 'x86_64 aarch64 ppc64le s390x';;   
+            esac 
+            ;;
+        *)
+            echo "Error: unsupported architecture ${arch}" 1>&2
+            exit 2
+            ;;
+    esac
+}
+
+#
+# get build types
+#
+# used to populate arch list for processing single or all
+get_build_types() {
+    local -r type="${1}"
+    case "${type}" in
+        default|minimal|micro|base|init)
+            echo "${type}";;    
+        all)
+            echo 'default minimal micro base init';;
+        ubi)
+            echo 'micro base init';;
+        *)
+            echo "Error: unsupported image type ${type}" 1>&2
+            exit 2
+            ;;
+    esac
+}
+
+
+#
+# Provide generalized machine arch
+#
+# used for output filenames based on $(uname -m)
+get_machine_arch() {
+    local -r arch="${1}"
+    case "${arch}" in
+        x86_64|aarch64|ppc64le|s390x)
+            echo "${arch}";;    
+        amd64)
+            echo 'x86_64';;
+        arm64/v8|arm64|arm64v8)
+            echo 'aarch64';;
+        386|i386|i486|i586|i686|x86)
+            echo 'i686';;
+        *)
+            echo "Error: unsupported architecture ${arch}" 1>&2
+            exit 2
+            ;;
+    esac
+}
+
+#
+# Checks Almalinux versiona build arch is supported
+#
+#  check_build_support_arch Version Arch
+#    ex: check_build_support_arch 8 aarch64
+#
+check_build_support_arch() {
+    local -r version="${1}"
+    local -r arch="${2}"
+    case "${version}" in
+        8)
+            case "${arch}" in
+                x86_64|aarch64|ppc64le|all)
+                    echo "supported";;     
+                *)
+                    echo "Error: unsupported architecture ${arch} for version ${version}" 1>&2
+                    exit 2
+                    ;;
+            esac
+            ;;
+        9)    
+            case "${arch}" in
+                x86_64|aarch64|ppc64le|s390x|all)
+                    echo "supported";;    
+                *)
+                    echo "Error: unsupported architecture ${arch} for version ${version}" 1>&2
+                    exit 2
+                    ;;
+            esac
+            ;;
+        *)
+            echo "Error: unsupported version ${arch}" 1>&2
+            exit 2   
+            ;;
+    esac         
+}
+
+#
+# build one container image from repo files
+#
+# build_single_image_using_repos Version Arch Type builtag_suffix
+#
+build_single_image_using_repos(){
+    local -r al_version="${1}"
+    local -r arch_platform=$(get_platform_arch "${2}")
+    local -r type="${3}"
+    local -r tag="${4}"
+    # local -r build_arg="--squash"
+    echo "Building for arch: $arch_platform"
+    docker build "--platform=linux/${arch_platform}" -t "${tag}" -f "dockerfiles/al${al_version}/Dockerfile.${type}" .
+}
+
+#
+# build one container image from rootfs files, usually right before publishing the images
+#
+# build_single_image_using_rootfs Version Arch Type builtag_suffix
+#
+build_single_image_using_rootfs(){
+    local -r al_version="${1}"
+    local -r arch_platform=$(get_platform_arch "${2}")
+    local -r type="${3}"
+    local -r tags="${4}"
+    local -r arch_machine=$(get_machine_arch "${2}")
+    local tag_list=""
+    ## assemble tags one string  to pass
+    echo "Tags input: $tags"
+    for tag  in $tags
+    do
+        tag_list="${tag_list} -t $tag"
+    done
+    echo "Formated tags: $tag_list"
+
+    ## TODO: replace buildx ? build and push together
+    docker build "--platform=linux/${arch_platform}" ${tag_list} -f "Dockerfile-${arch_machine}-${type}" .
+    
+    # Circle thru to publish
+    for tag  in $tags
+    do
+        docker push "${tag}"
+    done
+}
+
+#
+# Extract rootfs file from a container image (image_tag), creates rootfs `rootfs_outfile_prefix.tar.xz`
+#
+# gen_rootfs image_tag  rootfs_outfile_prefix
+#
+gen_rootfs() {
+    local -r image="${1}"
+    local -r tname="${2}"
+    local rootfs_tmp="rootfs_tmp_${2}"
+
+    tcnt=$(docker inspect $image | jq '.[] | .RootFS.Layers | length')
+    
+    echo "Found $tcnt layer(s) in image '$image'."
+    if [ $tcnt -ne 1 ]; then
+        echo "Only single layer image is supported at this time. Use '--squash' option to create single layer image."
+        exit
+    fi
+    echo "Setting up temp work dir ..."
+    mkdir -p $rootfs_tmp && cd $rootfs_tmp
+    echo "Saving docker/container image ..."
+    docker save $image -o rootfstmp.tar
+    trepo=$(tar -tf rootfstmp.tar | grep layer)
+    tcnt=$(echo $trepo | tr ' ' '\n' | grep layer | wc -l | xargs)
+#    echo "Found $tcnt layer(s) in image '$image'."
+    if [ $tcnt -eq 1 ]; then
+        echo "Extracting rootfs $trepo ..."
+        tar -xf rootfstmp.tar $trepo
+        mv $trepo $tname.tar
+        echo "Compressing rootfs ..."
+        xz $tname.tar
+        mv $tname* ../
+        cd ..
+        F1=$(ls *.tar* | grep $tname)
+        TMSG="Task complete. Output rootfs located at $PWD/$F1"
+    else
+        echo "Only single layer image is supported at this time. Use '--squash' option to create single layer image."
+        cd ..
+        TMSG="Error Exit, task complete."
+    fi
+    echo "Perform cleanup ..."
+    rm -rf $rootfs_tmp
+    echo $TMSG
+}
+
+#
+# pull_docker_official  "9" "0" "minimal" "20220623"
+#
+# pull_docker_official for "default" or "minimal", do-not rebuild for publish
+#
+pull_docker_official() {
+    local -r al_version="${1}"
+    local -r rel_version="${2}"
+    local -r type="${3}"
+    local -r repo_prefix="${4}"
+    local -r date_suffix="${5}"
+
+    local tag="$al_version.$rel_version"
+    if [[ $type == "minimal" ]]; then
+        tag="$tag-$type"
+    fi
+# pull with full release tag from docker    
+    local tag1=$tag
+    tag="$tag-$date_suffix"
+    docker pull docker.io/amd64/almalinux:$tag1
+    docker tag docker.io/amd64/almalinux:$tag1 "$repo_prefix/amd64:$tag"
+    docker push "$repo_prefix/amd64:$tag"
+    docker pull docker.io/arm64v8/almalinux:$tag1
+    docker tag docker.io/arm64v8/almalinux:$tag1 "$repo_prefix/arm64v8:$tag"
+    docker push "$repo_prefix/arm64v8:$tag"
+    docker pull docker.io/ppc64le/almalinux:$tag1
+    docker tag docker.io/ppc64le/almalinux:$tag1 "$repo_prefix/ppc64le:$tag"
+    docker push "$repo_prefix/ppc64le:$tag"
+    if [[ $al_version == "9" ]]; then
+        docker pull docker.io/s390x/almalinux:$tag1
+        docker tag docker.io/s390x/almalinux:$tag1 "$repo_prefix/s390x:$tag"
+        docker push "$repo_prefix/s390x:$tag"
+    fi
+
+}
+
+# build_ubi_manifest 9 0 micro 20220623
+build_ubi_manifest() {
+    local -r al_version="${1}"
+    local -r rel_version="${2}"
+    local -r types="${3}"
+    local -r repos="${4}"
+    local -r date_suffix="${5}"
+    local -r tags="latest ${1} ${1}.${2} ${1}.${2}-${5}"
+
+    for repo_prefix in $repos; 
+    do     
+        for type in $types; 
+        do 
+            if [[ $repo_prefix == *"docker"* &&  $type == "default" ]]; then
+                echo "No place holder for default in user space"
+            else
+            if [[ $type == "default" || $type == "minimal" ]]; then
+                pull_docker_official "${1}" "${2}" "${3}" "${4}" "${5}" 
+            else
+                build_images "${1}" "${2}" "all" "${type}" "${4}" "${5}" "rootfs"
+            fi
+            for tag in $tags
+            do
+                local part1="$repo_prefix"
+                local part2=""
+                local stype="-"
+                if [[ $type == "default" ]]; then
+                    part1="$part1/almalinux"
+                    stype=""
+                else
+                    part1="$part1/$al_version-$type"
+                    stype="$stype$type"
+                fi
+                part1="$part1:$tag"
+                local tag_suffix="${al_version}.${rel_version}${stype}-${date_suffix}"
+                part2="${part2} --amend ${repo_prefix}/amd64:${tag_suffix}"
+                part2="${part2} --amend ${repo_prefix}/arm64v8:${tag_suffix}" 
+                part2="${part2} --amend ${repo_prefix}/ppc64le:${tag_suffix}"
+                if [ "${al_version}" == '9' ]; then
+                    part2="${part2} --amend ${repo_prefix}/s390x:${tag_suffix}"
+                fi   
+                # echo "Part1: ${part1}"
+                # echo "Part2: ${part2}"
+                # rm returns error when repo/tag not found 
+                # docker manifest rm $part1
+                docker manifest create ${part1} ${part2}
+                docker manifest push "${part1}"
+            done   
+            fi
+        done
+    done
+}
+
+function formatTags() {
+    local -r al_verison="${1}"
+    local -r rel_version="${2}"
+    local -r repos="${3}"
+    local -r arch="${4}"
+    local -r separator="${5}"
+    local build_tag=""
+
+    for repo_prefix in $repos
+    do
+        build_tag=${build_tag}${repo_prefix}'/'$(get_registry_arch ${arch})$separator${al_version}.${rel_version}
+        if [ "$type" == "default" ]; then
+            build_tag="${build_tag}-${tag_date} " 
+        else   
+            build_tag="${build_tag}-${type}-${tag_date} "
+        fi
+    done
+    echo $build_tag
+}
+
+build_images () {
+    # 8 or 9 and release version
+    local -r al_version="${1}"
+    local -r rel_version="${2}"
+    # input arch env, 
+    local -r input_arch="${3}"
+    # input type env
+    local -r input_type="${4}"
+    # repo_prefix="srbala"
+    local -r repos="${5}"
+    local repo_sep=":"
+    # tag_date=$(date +%Y%m%d)
+    local -r tag_date="${6}"
+    local -r from="${7}"
+    local arch_list=$(get_build_arch ${al_version} ${input_arch})
+    local type_list=$(get_build_types ${input_type})
+
+    echo "************************************************"
+    echo "*                                              *"
+    echo "*              JOB INPUT VALUES                *"
+    echo "*                                              *"
+    echo "************************************************"
+    echo "Input version     : ${al_version}.${rel_version}" 
+    echo "Input Arch        : ${input_arch}" 
+    echo "Input type        : ${input_type}" 
+    echo "repos             : ${repos}" 
+    echo "date_tag          : ${tag_date}" 
+    echo "Input source      : ${from}" 
+    echo "Computed arch list: ${arch_list}" 
+    echo "Computed type list: ${type_list}" 
+    echo "************************************************"
+
+    if [[ -z "$type_list" ]]; then
+        echo "Validating input type failed ... ${input_type}" 
+        exit 2
+    fi
+
+    # Temp hack to cleanup manifest
+    if [[ "$from" == "rootfs" ]]; then
+        rm -rf ~/.docker/manifests
+    fi
+
+    status=$(check_build_support_arch "${1}" "${3}")
+
+    echo "Validating input values ... ${status}" 
+    local repo_prefix="docker.io/srbala"
+
+    if [[ $status == 'supported' && ! -z "$type_list" ]];  then
+        echo "Ready for processing ..."
+        for type in ${type_list};
+        do
+            echo ""
+            echo "************************************************"
+            echo "  Building container image type: $type          "
+            echo "************************************************"
+            echo ""
+            for arch in ${arch_list};
+            do
+                echo ""
+                echo "************************************************"
+                echo "  Building container image type $type, arch $arch          "
+                echo "************************************************"
+                echo ""
+                tags1=$(formatTags "${al_version}" "${rel_version}" "${repos}" "${arch}" "${repo_sep}")
+                build_tag=""
+                for atag in $tags1
+                do
+                    build_tag="${atag}"
+                done
+                ###build_tag='almalinux/'$arch$repo_sep'8-'$type'-20220608';
+                #build_tag=${repo_prefix}'/'$(get_registry_arch ${arch})$repo_sep${al_version}.${rel_version}
+                #if [ "$type" == "default" ]; then
+                #    build_tag=$build_tag'-'$tag_date
+                #else   
+                #    build_tag=$build_tag'-'$type'-'$tag_date
+                #fi
+                echo "Computed build tag: ${build_tag} from '${tags1}'"
+                if [[ "$from" == "repos" ]]; then
+                    tag=""
+                    # build_single_image_using_repos 9 "${1}" minimal "t-minimal-$(get_registry_arch ${1})"
+                    echo "build_single_image_using_repos ${al_version} ${arch} $type $build_tag"
+                    build_single_image_using_repos ${al_version} ${arch} $type $build_tag
+                    file_prefix='almalinux-'${al_version}'-docker-'$(get_machine_arch ${arch})'-'$type
+                    gen_rootfs $build_tag $file_prefix
+                    #docker push $build_tag
+                fi
+                if [[ "$from" == "rootfs" ]]; then
+                    build_single_image_using_rootfs  "${al_version}" "${arch}" "$type" "$tags1" 
+                fi
+            done
+        done
+    else
+        echo "Input value error"
+    fi
+}
+# build_image_from_repos ${1} ${2} ${3} "srbala"  $(date +%Y%m%d)
+# get_image_hash ${1}
+# get_os_release_version ${1}
+# pull_docker_official 8 6 20220512
+# build_images 9 0 "all" "micro" "srbala"  $(date +%Y%m%d) "rootfs"
+# build_images 9 0 "all" "micro" "srbala1"  $(date +%Y%m%d) "repos"
+
+# build_ubi_manifest "9" "0" "micro" "quay.io/almalinuxautobot" "20220527"
+
+# build_images "9" "0" "aarch64" "base" "srbala1"  20220527 "repos"

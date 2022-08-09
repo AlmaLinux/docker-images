@@ -1,0 +1,140 @@
+#!/bin/bash
+# AlmaLinux Docker Security Scan Utility
+if [ -z "$1" ]; then
+  show_usage
+  exit
+fi
+scan_tag="$1"
+log_prefix="alma"
+if [[ ! -z "$2" ]]; then
+  log_prefix="$2"
+fi
+#
+grype_file="${log_prefix}_sec_scan_grype.log"
+docker_file="${log_prefix}_sec_scan_docker.log"
+summary_file="${log_prefix}_run_summary.log"
+#
+fail_on_fix_find="false"
+if [ ! -z "$3" ]; then
+  case "${3}" in
+    "true")
+      fail_on_fix_find="true"
+      ;;
+    "false")
+      fail_on_fix_find="false"
+      ;;
+    *)
+      echo "Use 'true' or 'false' for fail-on-fix-find (3rd param), default is false"
+      exit 1
+      ;;
+  esac    
+fi
+function show_usage() {
+    echo -e 'Security scan utility for almalinux docker/container images\n'
+    echo -e 'Usage: sec_scan img-tag log-prefix fail-on-fix-find'
+    echo '    img-tag - docker/container image for scanning, ex: almalinux:8'
+    echo '    log-prefix - log file prefix, optional; ex: al8x or al9x etc'
+    echo '    fail-on-fix-find - true or false, optional; default false'
+    echo ''
+}
+
+function check_command() {
+  f1=$(which "$1")
+  # echo $f1
+  if [ "$f1" == "" ]; then
+    echo "$1 not found in path"
+    exit
+  else
+    echo "Command '$1' found in path"
+  fi
+}
+
+function print_banner() {
+    echo "***************************************************************"
+    echo "* Security scan utility for almalinux docker/container images *"
+    echo "***************************************************************"
+    echo ""
+}
+
+function summary_grype() {
+  file="${PWD}/${grype_file}"
+
+  a0=$(cat "$file" | wc -l | xargs)
+  if [[ $a0 > 0 ]]; then
+    a1=$(cat "$file" | grep High | wc -l | xargs)
+    a2=$(cat "$file" | grep Medium | wc -l | xargs)
+    a3=$(cat "$file" | grep Low | wc -l | xargs)
+    echo "grype search: $a1 High, $a2 Medium and $a3 Low security fixes found. Review $grype_file, for more details."
+  else
+    echo "No security update found using 'grype' search"
+  fi
+}
+
+function summary_dnf() {
+  file="${PWD}/${docker_file}"
+
+  a0=$(cat "$file" | wc -l | xargs)
+  if [[ $a0 > 0 ]]; then
+    a1=$(cat "$file" | grep Important | wc -l | xargs)
+    a2=$(cat "$file" | grep Moderate | wc -l | xargs)
+    a3=$(cat "$file" | grep Low | wc -l | xargs)
+    echo "dnf search  : $a1 High, $a2 Medium and $a3 Low security fixes found. Review $docker_file, for more details."
+  else
+    echo "No security update found using 'docker dnf' search"
+  fi
+}
+function sec_scan_dnf() {
+  echo "docker dnf scanning for $scan_tag"
+  ## Using common LSA to filter ALSA - alma, RLSA - rocky
+  docker run --rm $scan_tag dnf updateinfo list --security | grep LSA | tee $docker_file
+  echo "done!"
+  # return summary_dnf "$file"
+}
+
+function sec_scan_grype() {
+  echo "grype scanning for $scan_tag"
+  grype $scan_tag --only-fixed | grep -E 'TYPE|rpm|python' | tee $grype_file
+  echo "done!"
+}
+
+function write_sumary () {
+  echo ""
+  echo "*********************************************************************"
+  echo "*       AlmaLinux Docker Security Scan Utility - Run Summary        *"
+  echo "*********************************************************************"
+  echo "Docker tag: $scan_tag"
+  echo ""
+  summary_dnf 
+  summary_grype 
+  echo ""
+  echo "*********************************************************************"
+  echo ""
+}
+
+function exitCheck() {
+  if [ "$fail_on_fix_find" == "true" ]; then
+    if [[ $(cat "${PWD}/$grype_file" | wc -l | xargs) > 0 ]]; then
+      exit 1
+    fi
+    if [[ $(cat "${PWD}/$docker_file" | wc -l | xargs) > 0 ]]; then
+      exit 1
+    fi
+  fi
+}
+
+print_banner
+echo "Tools check: Verify necessary tools installed in path ..."
+check_command "docker"
+check_command "grype"
+echo "Tools check: completed."
+echo ""
+# check_command "abcx"
+echo "Security scanning for tag $scan_tag"
+
+docker pull $scan_tag > /dev/null
+sec_scan_dnf 
+sec_scan_grype 
+
+write_sumary  | tee > $summary_file
+cat $summary_file
+exitCheck
