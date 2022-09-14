@@ -1,0 +1,40 @@
+FROM fedora:36 as builder
+
+RUN mkdir /mnt/sys-root; \
+    dnf install \
+    --installroot /mnt/sys-root \
+    --releasever 36 \
+    --nodocs -y \
+    diffutils \
+    gawk \
+    perl-File-LibMagic \
+    pkgdiff \
+    wdiff \
+    dpkg \
+    binutils \
+    tar \
+    xz \
+    gzip \
+    nano \
+    which \
+    java-17-openjdk-headless \
+    abi-compliance-checker \
+    abi-dumper \
+    rootfiles; \
+    dnf --installroot /mnt/sys-root clean all; 
+
+# some cleanup    
+RUN rm -rf /mnt/sys-root/var/log/dnf* /mnt/sys-root/var/log/yum.* /mnt/sys-root/var/cache/dnf /mnt/sys-root/var/lib/dnf/repos; \
+    rm -rf /mnt/sys-root/var/lib/dnf/history* /mnt/sys-root/var/log/hawkey.log /mnt/sys-root/boot /mnt/sys-root/dev/null /mnt/sys-root/run/*; \
+    rm -f /mnt/sys-root/etc/machine-id; \
+    touch /mnt/sys-root/etc/machine-id; \
+    mkdir -p /mnt/sys-root/work
+
+# Almalinux minimal build
+FROM scratch
+COPY --from=builder /mnt/sys-root/ /
+
+WORKDIR /work
+
+CMD ["/bin/bash"]
+
