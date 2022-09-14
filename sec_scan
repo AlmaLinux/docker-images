@@ -112,13 +112,21 @@ function write_sumary () {
 }
 
 function exitCheck() {
-  if [ "$fail_on_fix_find" == "true" ]; then
-    if [[ $(cat "${PWD}/$grype_file" | wc -l | xargs) > 0 ]]; then
-      exit 1
+  export alma_sec_scan="0"
+  if [[ $(cat "${PWD}/$grype_file" | wc -l | xargs) > 0 ]]; then
+    export alma_sec_scan="1"
+  fi
+  if [[ $(cat "${PWD}/$docker_file" | wc -l | xargs) > 0 ]]; then
+    if [[ ${alma_sec_scan} == "1" ]]; then
+      export alma_sec_scan="3"
+    else
+      export alma_sec_scan="2"
     fi
-    if [[ $(cat "${PWD}/$docker_file" | wc -l | xargs) > 0 ]]; then
-      exit 1
-    fi
+  fi
+  echo "Secrity return code: $alma_sec_scan"
+  echo $alma_sec_scan > __sec_scan
+  if [[ "$fail_on_fix_find" == "true" && ${alma_sec_scan} > "0" ]]; then
+    exit $alma_sec_scan
   fi
 }
 

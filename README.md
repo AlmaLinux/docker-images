@@ -1,122 +1,42 @@
-# AlmaLinux Docker Images
+# AlmaLinux OS
 
-This project contains sources and tools for building [Official AlmaLinux Docker](https://hub.docker.com/_/almalinux)
-images.
+[**`AlmaLinux OS`**](https://almalinux.org/) is an Open Source and forever-free enterprise Linux distribution, governed and driven by the community, focused on long-term stability and a robust production-grade platform. AlmaLinux OS is 1:1 binary compatible with RHEL® 8 and it was founded by the team behind the well-established [**`CloudLinux OS`**](https://www.cloudlinux.com/all-products/product-overview/cloudlinuxos).
 
-## Build Requirements
+# AlmaLinux Container/Docker Images
 
-Docker images are created using AlmaLinux `rootfs` images. These images can be created from customized `kickstart` sources.
+This project contains sources and tools for building [Official AlmaLinux Images](https://hub.docker.com/_/almalinux) images in `dockerhub` and `Quay.io` repos.
 
-### Using an AlmaLinux system
+## About this image
 
-You need an **AlmaLinux system** with following RPM packages installed to run the `build.sh` script to create `rootfs` file.
+[AlmaLinux OS](https://almalinux.org/) images can be use with all [OCI complaint](https://opencontainers.org/) container runtime environments like Docker, Podman and Kubernetes and serve as drop-in replacemenets for `centos` images as it reaches [End of Life](https://centos.org/centos-linux-eol/).
 
-* anaconda-tui
-* lorax
-* subscription-manager (make sure the `rhsm` service is running, see [rhbz#1872902](https://bugzilla.redhat.com/show_bug.cgi?id=1872902))
-* jq
+### Platform image, `latest` tag
 
-```sh
-./build.sh -h
-Generates an AlmaLinux OS rootfs and Dockerfile
-Usage: build.sh [OPTION]...
-  -h        show this message and exit
-  -o        output directory path. Default is "./result"
-  -t        build type. Possible options are base, default, init, micro and minimal
-  -v        AlmaLinux major release version, 8 or 9, Default value is 8
-}
+The default (platform) image is a general-purpose image with a full DNF stack and basic tools like bintools, find, tar, minimal-vim, etc.
 
-```
+The `almalinux:latest` tag will always point to the latest stable release of the default image. Major releases and minor releases are also tagged with their version (e.g. `almalinux:8`, `almalinux:8.6`, `almalinux:9`, and `almalinux:9.0` etc).
 
-Use command below to create `default` docker files for `almalinux:8`container image
+### Minimal image, `minimal` tag
 
-```sh
-./build.sh -o default -t default -v 8
-```
+The minimal image is a stripped-down image that uses the [**`microdnf`**](https://github.com/rpm-software-management/microdnf) as package manager which uses `libdnf` and hence doesn't require Python. This image is `52%` smaller in size (`37MB` download, `102MB` expanded), contains a very limited package set. It is designed for applications that come with their own dependencies bundled (e.g. GO, NodeJS, Java).
 
-Use command below to create `minimal` docker files for `almalinux:minimal`container image
+The `almalinux:minimal` tag will always point to the latest stable release of the default image. Major releases and minor releases are also tagged with their version (e.g. `almalinux:8-minimal`, `almalinux:8.6-minimal`, `almalinux:9-minimal`, and `almalinux:9.0-minimal` etc).
 
-```sh
-./build.sh -o minimal -t minimal -v 8
-```
+### Upgrade policy
 
-Use command below to create `base` docker files for `almalinux:base`container image
+All images for supported releases will be updated monthly or as needed for security fixes.
 
-```sh
-./build.sh -o base -t base -v 8
-```
+### How It's Made
 
-Use command below to create `micro` docker files for `almalinux:micro`container image
+The rootfs tarballs for this image are built using `docker` or the [livemedia-creator tool](http://weldr.io/lorax/livemedia-creator.html). The build script and kickstart files are available in the [AlmaLinux/docker-images](https://github.com/AlmaLinux/docker-images) git repository.
 
-```sh
-./build.sh -o micro -t micro -v 8
-```
+### UBI8 variant images
 
-Use command below to create `init` docker files for `almalinux:init`container image
+AlmaLinux OS now offers new variant of images [**`almalinux/8-base`**](https://hub.docker.com/r/almalinux/8-base), [**`almalinux/8-init`**](https://hub.docker.com/r/almalinux/8-init), [**`almalinux/8-micro`**](https://hub.docker.com/r/almalinux/8-micro) and [**`almalinux/8-minimal`**](https://hub.docker.com/r/almalinux/8-minimal)  to be aligned with  RedHat UBI images.
 
-```sh
-./build.sh -o init -t init -v 8
-```
+### UBI9 variant images
 
-Use `sudo ./build-all-8.sh` for building all images of Almalinux 8. Use `sudo ./build-all-9.sh` for building all images of Almalinux 9.
-
-### Known issues
-
-You may see the following message in the output:
-
-```sh
-2021-02-05 20:28:10,554: Error in atexit._run_exitfuncs:
-2021-02-05 20:28:10,555: Traceback (most recent call last):
-2021-02-05 20:28:10,555: File "/usr/lib/python3.6/site-packages/dasbus/client/handler.py", line 477, in _get_method_reply
-2021-02-05 20:28:10,557: return self._handle_method_error(error)
-2021-02-05 20:28:10,559: File "/usr/lib/python3.6/site-packages/dasbus/client/handler.py", line 497, in _handle_method_error
-2021-02-05 20:28:10,560: raise exception from None
-2021-02-05 20:28:10,562: dasbus.error.DBusError: umount of /mnt/sysimage/run failed (32)
-```
-
-This happens because we need to unmount `/run` in the kickstart file.
-It doesn't affect the result, see
-[rhbz#1904008](https://bugzilla.redhat.com/show_bug.cgi?id=1904008) for
-details.
-
-### Using Docker
-
-You need a system with docker installed for this approach. This uses `almalinux/ks2rootfs` [build utility](https://github.com/AlmaLinux/ks2rootfs) using docker.
-
-Use command below to create `default` docker files
-
-```sh
-docker run --rm --privileged -v "$PWD:/build:z" \
-    -e KICKSTART_FILE=kickstarts/almalinux-8-default.ks \
-    -e IMAGE_NAME=almalinux-8-docker-default.x86_64.tar.gz \
-    -e OUTPUT_DIR=default \
-    -e BUILD_TYPE=default \
-    almalinux/ks2rootfs
-```
-
-Use command below to create `base` docker files
-
-```sh
-docker run --rm --privileged -v "$PWD:/build:z" \
-    -e KICKSTART_FILE=kickstarts/almalinux-8-base.ks \
-    -e IMAGE_NAME=almalinux-8-docker-base.x86_64.tar.gz \
-    -e OUTPUT_DIR=base \
-    -e BUILD_TYPE=base \
-    almalinux/ks2rootfs
-```
-
-Use command below to create `init` docker files
-
-```sh
-docker run --rm --privileged -v "$PWD:/build:z" \
-    -e KICKSTART_FILE=kickstarts/almalinux-8-init.ks \
-    -e IMAGE_NAME=almalinux-8-docker-init.x86_64.tar.gz \
-    -e OUTPUT_DIR=init \
-    -e BUILD_TYPE=init \
-    almalinux/ks2rootfs
-```
-
-Please make note docker utility cannot be used to generate `micro` and `minimal` packages. Work in progress to resolve it.
+AlmaLinux OS now offers new variant of images [**`almalinux/9-base`**](https://hub.docker.com/r/almalinux/9-base), [**`almalinux/9-init`**](https://hub.docker.com/r/almalinux/9-init), [**`almalinux/9-micro`**](https://hub.docker.com/r/almalinux/9-micro) and [**`almalinux/9-minimal`**](https://hub.docker.com/r/almalinux/9-minimal)  to be aligned with  RedHat UBI9 images.
 
 ## References
 

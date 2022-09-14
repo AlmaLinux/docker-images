@@ -508,8 +508,9 @@ gitBranchLastCommit() {
 # Get given git branch commit json details, 
 jsonLastCommit() {
 	local -r branch="$1"
-	git_url="https://api.github.com/repos/almalinuxautobot/docker-images/commits/$branch"
-	if [ "${RUN_ENV}" == "prod" ]; then
+	git_url="https://api.github.com/repos/k2s-ossc/docker-images/commits/$branch"
+    # TODO fix run_env
+	if [ "${run_env}" == "prod" ]; then
 		git_url="https://api.github.com/repos/almalinux/docker-images/commits/$branch"
 	fi
 	curl -s $git_url 
@@ -536,16 +537,93 @@ getBranchlist() {
 #
 getLibrarybranch() {
 	local -r ver="${1}"
-    url="${2:-https://raw.githubusercontent.com/docker-library/official-images/master/library/almalinux}"
+    ownerPath="${2:-docker-library/official-images/master}"
+    url="https://raw.githubusercontent.com/${ownerPath}/library/almalinux"
     ref_branch=$(curl -s $url  | grep GitFetch | sort -ru | awk 'FNR < 3 { print $2 } ' | grep al$1 | sed 's/-s390x//' | sed 's=refs/heads/==g' )
     echo $ref_branch
 }
 
 gitBranchLastCommitHash() {
 	local -r branch="$1"
-	json=$(jsonLastCommit $branch)
-	hash=$(echo $json | jq '.sha' | xargs)
+	hash=$(git ls-remote -h https://github.com/k8s-ossc/docker-images | grep "${branch}" | awk '{ print $1 }')
+	# hash=$(echo $json | jq '.sha' | xargs)
     echo $hash
+}
+validateOrPrepareBranches() {
+  echo "In validateOrPrepareBranches ..."
+  local -r ver="${1}" 
+  local -r releaseDate="${2}"
+  local -r sourceBranch="${3}"
+  failOnRepoExist="true"
+  createRepos="false"
+  repoUrlProd="https://github.com/k8s-ossc/docker-images"
+  repoUrlDevl="https://github.com/almalinuxautobot/docker-images"
+  repoPrefix="al${ver}-${releaseDate}"
+  # needed echo to capture value is zero
+  repoCount=$(echo $(git ls-remote -h ${repoUrlProd} | grep ${repoPrefix} | wc -l | xargs))
+  echo $repoCount
+  echo "Repo Prefix: ${repoPrefix}, found ${repoCount} branches in ${repoUrlProd}"
+  echo "Source branch: ${sourceBranch}"
+  if [[ ${repoCount} > 0 ]]; then
+    echo "Production branches already exits, possible production branch. Perform additional check ..."
+    if [[ "${sourceBranch}" == "${repoPrefix}" ]]; then
+      echo "Input source branch matches repo prefix (No Changes), Using existing branches to continue ..."
+      failOnRepoExist="false"
+      createRepos="false"
+    else
+      echo "Input source branch does not match ${repoPrefix}, but production branches already exits ..." 
+      failOnRepoExist="true"
+      createRepos="false"
+    fi
+  else
+    echo "New production branches using prefix ${repoPrefix} will be created based on ${sourceBranch} (Use Development) ..."  
+    failOnRepoExist="false"
+    createRepos="true"
+  fi
+  if [[ "${failOnRepoExist}" == "true" ]]; then 
+    echo "calling exit"
+    exit 12
+  fi
+  if [[ "${createRepos}" == "true" ]]; then 
+    echo "Setting up new branches ..."
+  fi
+  # mkdir -p work
+  rm -rf "work/source${ver}"
+  git clone --single-branch --branch=$sourceBranch $repoUrlDevl "work/source${ver}"
+  cd "work/source${ver}"
+  git remote add alma "${repoUrlProd}"
+  git checkout -b "${repoPrefix}"
+  # git push alma "${repoPrefix}"
+  ls -al
+  git branch
+  # 
+  arch_list="x86_64 aarch64 ppc64le s390x"  
+  for march in $arch_list;
+  do
+    reg_arch=$(get_registry_arch ${march})
+    echo "Creating orphan branch ${repoPrefix}-$reg_arch"
+    git checkout --orphan "${repoPrefix}-$reg_arch"
+    for arch in $arch_list;
+    do
+      if [ $march != $arch ]; then
+        # echo "Deleteing ... git rm -f *${arch}* files"
+        echo "Removing other arch files"
+        git rm -f "*${arch}*"
+      fi
+    done
+    git status
+    git commit -m "Adding RootFS files"
+    sleep 3
+    echo "git push to prod url"
+    #git push alma "${repoPrefix}-$reg_arch"
+    sleep 5
+    git checkout $sourceBranch
+    sleep 2
+  done  
+  git branch
+  cd ../..
+#  rm -rf "work/source${ver}"
+  echo "done"
 }
 
 #
@@ -554,57 +632,73 @@ gitBranchLastCommitHash() {
 #
 # Generate AlmaLinux 8 related tags
 almaLibrary8Tags() {
-	local -r branch="$1"
-	json=$(jsonLastCommit $branch)
-	commit=$(echo $json | jq '.sha' | xargs)
-	dt=$(echo $json | jq '.commit.author.date' | xargs)
-	tagdate=$(date -d $dt  +'%Y%m%d')
+    local -r tagdate="$1"
 	echo
 	cat <<-EOE
 		Tags: latest, 8, 8.6, 8.6-$tagdate
-		GitFetch: refs/heads/$branch
-		GitCommit: $commit
+		GitFetch: refs/heads/al8-$tagdate-amd64
+		GitCommit: $(gitBranchLastCommitHash "al8-$tagdate-amd64")
 		amd64-File: Dockerfile-x86_64-default
+		arm64v8-GitFetch: refs/heads/al8-$tagdate-arm64v8
+		arm64v8-GitCommit: $(gitBranchLastCommitHash "al8-$tagdate-arm64v8")
 		arm64v8-File: Dockerfile-aarch64-default
+		ppc64le-GitFetch: refs/heads/al8-$tagdate-ppc64le
+		ppc64le-GitCommit: $(gitBranchLastCommitHash "al8-$tagdate-ppc64le")
 		ppc64le-File: Dockerfile-ppc64le-default
-        s390x-File: Dockerfile-s390x-default
+		s390x-GitFetch: refs/heads/al8-$tagdate-s390x
+		s390x-GitCommit: $(gitBranchLastCommitHash "al8-$tagdate-s390x")
+		s390x-File: Dockerfile-s390x-default
 		Architectures: amd64, arm64v8, ppc64le, s390x
 
 		Tags: minimal, 8-minimal, 8.6-minimal, 8.6-minimal-$tagdate
-		GitFetch: refs/heads/$branch
-		GitCommit: $commit
+		GitFetch: refs/heads/al8-$tagdate-amd64
+		GitCommit: $(gitBranchLastCommitHash "al8-$tagdate-amd64")
 		amd64-File: Dockerfile-x86_64-minimal
+		arm64v8-GitFetch: refs/heads/al8-$tagdate-arm64v8
+		arm64v8-GitCommit: $(gitBranchLastCommitHash "al8-$tagdate-arm64v8")
 		arm64v8-File: Dockerfile-aarch64-minimal
+		ppc64le-GitFetch: refs/heads/al8-$tagdate-ppc64le
+		ppc64le-GitCommit: $(gitBranchLastCommitHash "al8-$tagdate-ppc64le")
 		ppc64le-File: Dockerfile-ppc64le-minimal
-        s390x-File: Dockerfile-s390x-default
+		s390x-GitFetch: refs/heads/al8-$tagdate-s390x
+		s390x-GitCommit: $(gitBranchLastCommitHash "al8-$tagdate-s390x")
+		s390x-File: Dockerfile-s390x-minimal
 		Architectures: amd64, arm64v8, ppc64le, s390x
 	EOE
 }
 
 # Generate AlmaLinux 9 related tags
 almaLibrary9Tags() {
-	local -r branch="$1"
-    json=$(jsonLastCommit $branch)
-	commit=$(echo $json | jq '.sha' | xargs)
-	dt=$(echo $json | jq '.commit.author.date' | xargs)
-	tagdate=$(date -d $dt  +'%Y%m%d')
+    local -r tagdate="$1"
 	echo
 	cat <<-EOE
 		Tags: 9, 9.0, 9.0-$tagdate
-		GitFetch: refs/heads/$branch
-		GitCommit: $commit
+		GitFetch: refs/heads/al9-$tagdate-amd64
+		GitCommit: $(gitBranchLastCommitHash "al9-$tagdate-amd64")
 		amd64-File: Dockerfile-x86_64-default
+		arm64v8-GitFetch: refs/heads/al9-$tagdate-arm64v8
+		arm64v8-GitCommit: $(gitBranchLastCommitHash "al9-$tagdate-arm64v8")
 		arm64v8-File: Dockerfile-aarch64-default
+		ppc64le-GitFetch: refs/heads/al9-$tagdate-ppc64le
+		ppc64le-GitCommit: $(gitBranchLastCommitHash "al9-$tagdate-ppc64le")
 		ppc64le-File: Dockerfile-ppc64le-default
+		s390x-GitFetch: refs/heads/al9-$tagdate-s390x
+		s390x-GitCommit: $(gitBranchLastCommitHash "al9-$tagdate-s390x")
 		s390x-File: Dockerfile-s390x-default
 		Architectures: amd64, arm64v8, ppc64le, s390x
 
 		Tags: 9-minimal,  9.0-minimal, 9.0-minimal-$tagdate
-		GitFetch: refs/heads/$branch
-		GitCommit: $commit
+		GitFetch: refs/heads/al9-$tagdate-amd64
+		GitCommit: $(gitBranchLastCommitHash "al9-$tagdate-amd64")
 		amd64-File: Dockerfile-x86_64-minimal
+		arm64v8-GitFetch: refs/heads/al9-$tagdate-arm64v8
+		arm64v8-GitCommit: $(gitBranchLastCommitHash "al9-$tagdate-arm64v8")
 		arm64v8-File: Dockerfile-aarch64-minimal
+		ppc64le-GitFetch: refs/heads/al9-$tagdate-ppc64le
+		ppc64le-GitCommit: $(gitBranchLastCommitHash "al9-$tagdate-ppc64le")
 		ppc64le-File: Dockerfile-ppc64le-minimal
+		s390x-GitFetch: refs/heads/al9-$tagdate-s390x
+		s390x-GitCommit: $(gitBranchLastCommitHash "al9-$tagdate-s390x")
 		s390x-File: Dockerfile-s390x-minimal
 		Architectures: amd64, arm64v8, ppc64le, s390x
 	EOE
@@ -673,7 +767,7 @@ function almaEnvBuilder() {
 	al_date_suffix="$date_suffix"
 	al_git_build_branch=main
 	al_git_publish_url=https://github.com/almalinuxautobot/docker-images.git
-	al_git_publish_branch_${os}="$branch"
+	al_git_publish_branch="$branch"
 	## Quay.io amd64 URLs
 	SYS_BASE=${repo}/amd64:${os}.${rel}-base-$date_suffix
 	SYS_INIT=${repo}/amd64:${os}.${rel}-init-$date_suffix
@@ -712,3 +806,13 @@ print_env_header() {
 # build_ubi_manifest "9" "0" "micro" "quay.io/almalinuxautobot" "20220527"
 
 # build_images "9" "0" "aarch64" "base" "srbala1"  20220527 "repos"
+# validateOrPrepareBranches "8" "20220912" "al8-20220912-002721"
+# validateOrPrepareBranches "9" "20220912" "al9-20220912-003034"
+# archLoop
+# run_env="devl"
+# gitBranchLastCommitHash "al8-20220912-amd64"
+# gitBranchLastCommitHash "al9-20220912-amd64"
+# gitBranchLastCommitHash "al8-20220901-amd64"
+# gitBranchLastCommitHash "al9-20220901-amd64"
+# almaLibrary8Tags "20220901"
+# almaLibrary9Tags "20220901"
