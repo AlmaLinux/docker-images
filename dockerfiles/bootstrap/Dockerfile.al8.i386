@@ -1,0 +1,33 @@
+ARG SYSBASE=srbala/i386:8-alma
+FROM ${SYSBASE} as system-build
+
+# yum install -y dnf --disablerepo=updates; 
+RUN mkdir /mnt/sys-root; \
+    dnf install -y \
+    --nogpgcheck --repoid=AppStream --repoid=BaseOS \
+    --repofrompath='BaseOS,https://repo.almalinux.org/vault/8/BaseOS/i686/os/' \
+    --repofrompath='AppStream,https://repo.almalinux.org/vault/8/AppStream/i686/os/' \
+    --installroot /mnt/sys-root \
+    --releasever 8 \
+    --setopt install_weak_deps=false \
+    --nodocs \
+    dnf; \
+    dnf --installroot /mnt/sys-root clean all; \
+    rm -rf /mnt/sys-root/var/log/dnf* /mnt/sys-root/var/log/yum.*; \
+    rm -rf /mnt/sys-root/var/lib/dnf/history* /mnt/sys-root/var/log/hawkey.log  /mnt/sys-root/boot /mnt/sys-root/dev/null /mnt/sys-root/run/*; \
+    mkdir -p /mnt/sys-root/run/lock; \
+    sed -i 's/\/almalinux/\/vault/' /mnt/sys-root/etc/yum.repos.d/*.repo &>/dev/null; \
+# Mirror service need updates for valut support, turn off and use base url
+    sed -i 's/mirrorlist/# mirrorlist/' /mnt/sys-root/etc/yum.repos.d/*.repo &>/dev/null; \
+    sed -i 's/# baseurl/baseurl/' /mnt/sys-root/etc/yum.repos.d/*.repo &>/dev/null; \
+# $basearch variable returns wrong path, fix with right path to keep installer happy
+    sed -i 's/$basearch/i686/' /mnt/sys-root/etc/yum.repos.d/*.repo &>/dev/null;
+    
+# Build a fresh container image using COPY
+FROM scratch 
+COPY --from=system-build /mnt/sys-root/ /
+
+ENV LANG=C.utf8
+
+CMD ["/bin/bash"]
+
