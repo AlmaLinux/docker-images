@@ -1,0 +1,71 @@
+ARG SYSBASE=srbala/i386:9-bootstrap
+FROM ${SYSBASE} as system-build
+
+# RUN yum install -y dnf --disablerepo=updates
+
+RUN mkdir /mnt/sys-root; \
+    rpm --rebuilddb; \
+    dnf install -y \
+#    --nogpgcheck --repoid=AppStream --repoid=BaseOS \
+#    --repofrompath='BaseOS,https://repo.almalinux.org/vault/9/BaseOS/i686/os/' \
+#    --repofrompath='AppStream,https://repo.almalinux.org/vault/9/AppStream/i686/os/' \
+    --installroot /mnt/sys-root \
+    --releasever 9 \
+    --setopt install_weak_deps=false \
+    --nodocs \
+    binutils \
+    coreutils-single \
+    dnf \
+    findutils \
+    glibc-minimal-langpack \ 
+    hostname \
+    iputils \
+    langpacks-en \
+    less \
+    libcurl-minimal \
+    rootfiles \
+    tar \
+    vim-minimal \
+    yum \
+    xz \ 
+    ; \
+    yum --installroot /mnt/sys-root clean all; \
+    rm -rf /mnt/sys-root/var/log/dnf* /mnt/sys-root/var/log/yum.*; \
+    rm -rf /mnt/sys-root/var/lib/dnf/history* /mnt/sys-root/var/log/hawkey.log  /mnt/sys-root/boot /mnt/sys-root/dev/null /mnt/sys-root/run/*; \
+    mkdir -p /mnt/sys-root/run/lock; \
+    # rm -rf /mnt/sys-root/var/cache/*  removed line
+    # cp /etc/yum.repos.d/*.repo /mnt/sys-root/etc/yum.repos.d/; \
+    # generate build time file for compatibility with CentOS
+    /bin/date +%Y%m%d_%H%M > /mnt/sys-root/etc/BUILDTIME; \
+    echo '%_install_langs C.utf8' > /mnt/sys-root/etc/rpm/macros.image-language-conf; \
+    echo 'LANG="C.utf8"' >  /mnt/sys-root/etc/locale.conf; \
+    echo 'container' > c/etc/dnf/vars/infra; \
+    rm -f /mnt/sys-root/etc/machine-id; \
+    touch /mnt/sys-root/etc/machine-id;
+
+# Fix REPO files for updates and install compatable
+# Following fixes applies to all repo files
+# Replace main path points to vault since i686 only available in vault
+RUN sed -i 's/\/almalinux/\/vault/' /mnt/sys-root/etc/yum.repos.d/*.repo &>/dev/null; \
+# Mirror service need updates for valut support, turn off and use base url
+    sed -i 's/mirrorlist/# mirrorlist/' /mnt/sys-root/etc/yum.repos.d/*.repo &>/dev/null; \
+    sed -i 's/# baseurl/baseurl/' /mnt/sys-root/etc/yum.repos.d/*.repo &>/dev/null; \
+# $basearch variable returns wrong path, fix with right path to keep installer happy
+    sed -i 's/$basearch/i686/' /mnt/sys-root/etc/yum.repos.d/*.repo &>/dev/null;
+    
+# Create Fresh container image using copy
+FROM scratch 
+COPY --from=system-build /mnt/sys-root/ /
+
+ENV LANG=C.utf8
+
+RUN systemctl set-default multi-user.target; \
+    systemctl mask systemd-remount-fs.service \
+    dev-hugepages.mount \
+    sys-fs-fuse-connections.mount \
+    systemd-logind.service \
+    getty.target \
+    console-getty.service
+
+CMD ["/bin/bash"]
+
