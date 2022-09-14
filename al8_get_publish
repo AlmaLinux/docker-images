@@ -1,0 +1,12 @@
+#!/bin/bash
+# description: Build rootfs from repos based on environment variables
+# license: MIT.
+
+source env.al8
+source ./docker_utils_functions
+
+# build_images "9" "0" "s390x" "micro" "srbala1"  20220527 "repos"
+# build_ubi_manifest $al_os_version $al_rel_version $al_arch $al_types $al_repo_prefix $al_date_suffix "rootfs"
+# build_ubi_manifest "9" "0" "micro" "quay.io/almalinuxautobot" "20220527"
+git clone --depth=1 --branch=$al_git_publish_branch $al_git_publish_url ../results
+cp ./al8_publish ../results/publish
