@@ -1,0 +1,18 @@
+#!/bin/bash
+# Author: Bala Raman <srbala@gmail.com>
+#
+
+#
+# import all docker util function for build and publish
+#
+source docker_utils_functions
+
+file="env.al9"
+echo
+echo -n "Writing ${file} ... "
+print_env_header "${file}";
+almaEnvBuilder  "${file}" "9" "0" "all" "all" "devl" "today"
+echo -n " done!"
+echo
+
+
