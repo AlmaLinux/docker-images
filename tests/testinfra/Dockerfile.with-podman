@@ -1,0 +1,14 @@
+FROM almalinux:9
+
+LABEL org.opencontainers.image.authors="Bala Raman <bala@almalinux.org>"
+
+RUN dnf install -y python3-pip initscripts podman podman-docker crun; \
+    pip install --no-cache-dir docker; \
+    pip install --no-cache-dir pytest-testinfra; 
+# patch infra until  PR https://github.com/pytest-dev/pytest-testinfra/pull/655 approved and merged  
+# RUN sed -i 's/"centos",/"almalinux", "centos",/' /usr/local/lib/python3.9/site-packages/testinfra/modules/package.py &>/dev/null; \
+#     sed -i 's/"fedora",/"fedora", "rocky",/' /usr/local/lib/python3.9/site-packages/testinfra/modules/package.py &>/dev/null; 
+
+WORKDIR /code
+
+CMD ["pytest", "--verbose"]
