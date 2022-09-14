@@ -1,2 +1,7 @@
 examples/
 work/
+__pycache__
+.pytest_cache
+*.log
+junit*
+env.*
