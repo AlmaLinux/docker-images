@@ -673,7 +673,7 @@ function almaEnvBuilder() {
 	al_date_suffix="$date_suffix"
 	al_git_build_branch=main
 	al_git_publish_url=https://github.com/almalinuxautobot/docker-images.git
-	al_git_publish_branch_${os}="$branch"
+	git_publish_branch_al${os}="$branch"
 	## Quay.io amd64 URLs
 	SYS_BASE=${repo}/amd64:${os}.${rel}-base-$date_suffix
 	SYS_INIT=${repo}/amd64:${os}.${rel}-init-$date_suffix
