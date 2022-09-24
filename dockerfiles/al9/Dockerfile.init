@@ -23,6 +23,7 @@ RUN mkdir /mnt/sys-root; \
     libusbx \
     procps-ng \
     rootfiles \
+    systemd \    
     tar \
     usermode \
     vim-minimal \

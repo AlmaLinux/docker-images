@@ -21,6 +21,7 @@ RUN mkdir /mnt/sys-root; \
     less \
     libcurl-minimal \
     rootfiles \
+    systemd \
     tar \
     vim-minimal \
     yum \
