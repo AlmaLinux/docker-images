@@ -7,5 +7,5 @@
 #
 source docker_utils_functions
 #
-getLibrarybranch "8"
-# getBranchlist "8"
+getProdLibBranchPrefix "8"
+getDevlLibBranchlist "8"

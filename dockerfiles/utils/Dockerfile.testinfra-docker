@@ -10,4 +10,6 @@ RUN dnf install -y python3-pip yum-utils initscripts; \
 
 WORKDIR /code
 
+ENV PYTHONDONTWRITEBYTECODE=1 
+
 CMD ["pytest", "--verbose"]

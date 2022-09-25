@@ -1,7 +1,8 @@
 #!/bin/bash
 # base script
-set -euo pipefail
+# set -euo pipefail
 
+# TODO: Check the need for the preset
 ARCH="$(uname -m)"
 MANIFEST=0
 TYPE=''
@@ -9,24 +10,33 @@ TYPE=''
 OPTIND=1
 
 #
-# Return OS Release name like `AlmaLinux release 9.0 (Emerald Puma)` for audit log
+# Utility function to returns OS Release Name
+# 
+# Usage:
+#   get_os_release image-id
 #
+# Example:
+#   get_os_release almalinux:9
+#      Return `AlmaLinux release 9.0 (Emerald Puma)` 
+# 
 get_os_release() {
     local -r image=${1}
     # issue docker pull, redirect messages to null
     docker pull ${image} > /dev/null
-    local rel=$(docker run --rm -it ${image} cat /etc/system-release)
+    local rel=$(docker run --rm ${image} cat /etc/system-release)
     echo $rel
 }
 
-get_image_hash() {
-    local -r image=${1}
-    # issue docker pull, redirect messages to null
-    docker pull ${image} > /dev/null
-    local hash=$(docker inspect ${image} | jq '.[] .Id' | tr -d '"')
-    echo $hash
-}
-
+#
+# Utility function to returns OS Release Version
+# 
+# Usage:
+#   get_os_release image-id
+#
+# Example:
+#   get_os_release almalinux:9
+#      Return `9.0` 
+# 
 get_os_release_version() {
     local -r image=${1}
     # issue docker pull, redirect messages to null
@@ -37,9 +47,35 @@ get_os_release_version() {
 }
 
 #
-# Provide arch names for registory path
+# Utility function to returns docker image hash value
+# When given image is not available, pulled from remote registory
+# 
+# Usage:
+#   get_os_release image-id
 #
-# used to create arch specific tag path
+# Example:
+#   get_image_hash almalinux:9
+#      Return `sha256:d5c6ee0317ab996cc7684a6dcbffb061bdaec76e46e9f301be0bd3a41bed3493` 
+# 
+get_image_hash() {
+    local -r image=${1}
+    # issue docker pull, redirect messages to null
+    docker pull ${image} > /dev/null
+    local hash=$(docker inspect ${image} | jq '.[] .Id' | tr -d '"')
+    echo $hash
+}
+
+#
+# Utility function to provide arch names for registory path.
+# It is usefull to build container registry tagName string dynamically
+#
+# Usage:
+#   get_registry_arch machinArch
+#
+# Example:
+#   get_registry_arch x86_64
+#     Returns `amd64`
+#
 get_registry_arch() {
     local -r arch="${1}"
     case "${arch}" in
@@ -59,7 +95,15 @@ get_registry_arch() {
 }
 
 #
-# Provide platform arch for container param input
+# Utility function to provide platform arch name(s) for docker build step.
+# It is usefull to build command dynamically in docker build, input parameter
+#
+# Usage:
+#   get_platform_arch machinArch
+#
+# Example:
+#   get_platform_arch aarch64
+#     Returns `arm64/v8`
 #
 get_platform_arch() {
     local -r arch="${1}"
@@ -80,9 +124,19 @@ get_platform_arch() {
 }
 
 #
-# get build arch
+# Utility function to sanitize build arch parameter
+# Used to populate arch list for processing single or all
 #
-# used to populate arch list for processing single or all
+# TODO: this function my need work to use/support for other
+# variants of RHEL
+#
+# Usage:
+#   get_build_arch arch
+#
+# Example:
+#   get_build_arch all
+#     Returns `x86_64 aarch64 ppc64le s390x`
+#
 get_build_arch() {
     local -r arch="${2}"
     local -r version=${1}
@@ -105,9 +159,18 @@ get_build_arch() {
 }
 
 #
-# get build types
+# Utility function to sanitize build image type parameter
+# Used to populate image type list for processing single or all
 #
-# used to populate arch list for processing single or all
+# Usage:
+#   get_build_types imageType 
+#
+# Example:
+#   get_build_types "micro"
+#     returns "micro"
+#   get_build_types "all"
+#     returns "default minimal micro base init"
+#
 get_build_types() {
     local -r type="${1}"
     case "${type}" in
@@ -115,6 +178,8 @@ get_build_types() {
             echo "${type}";;    
         all)
             echo 'default minimal micro base init';;
+        official)
+            echo 'default minimal';;
         ubi)
             echo 'micro base init';;
         *)
@@ -124,11 +189,19 @@ get_build_types() {
     esac
 }
 
-
 #
-# Provide generalized machine arch
-#
+# Utility function to provide generalized machine arch
 # used for output filenames based on $(uname -m)
+#
+# Usage:
+#   get_machine_arch imageType 
+#
+# Example:
+#   get_machine_arch "amd64"
+#     returns "x86_64"
+#   get_machine_arch "arm64/v8"
+#     returns "aarch64"
+#
 get_machine_arch() {
     local -r arch="${1}"
     case "${arch}" in
@@ -150,8 +223,11 @@ get_machine_arch() {
 #
 # Checks Almalinux versiona build arch is supported
 #
-#  check_build_support_arch Version Arch
-#    ex: check_build_support_arch 8 aarch64
+# Usage:
+#   check_build_support_arch "osVersion" "arch"
+#
+# Example
+#   check_build_support_arch 8 aarch64
 #
 check_build_support_arch() {
     local -r version="${1}"
@@ -184,10 +260,13 @@ check_build_support_arch() {
     esac         
 }
 
+# 
+# Function for internal reference use only.
+# Build for singleArch, singleType of container image from public repo
 #
-# build one container image from repo files
+# TODO: if build and push needed, buildx can be used, need more work
 #
-# build_single_image_using_repos Version Arch Type builtag_suffix
+# build_single_image_using_repos "OsVersion" "arch" "imageType" "dockerTag" "dockerBase"
 #
 build_single_image_using_repos(){
     local -r al_version="${1}"
@@ -201,9 +280,15 @@ build_single_image_using_repos(){
 }
 
 #
-# build one container image from rootfs files, usually right before publishing the images
+# Function to build one container image from rootfs files, 
+# usually right before publishing the images. This function defined
+# internal use only
 #
-# build_single_image_using_rootfs Version Arch Type builtag_suffix
+# Usage:
+#   build_single_image_using_rootfs "osVersion" "arch" "imageType" "dockerTags" "skipDockerPush"
+#
+# Example:
+#   build_single_image_using_rootfs "8" "all" "micro" "srbala/8-micro" "false"
 #
 build_single_image_using_rootfs(){
     local -r al_version="${1}"
@@ -315,8 +400,8 @@ pull_docker_official() {
 
 }
 
-# build_ubi_manifest 9 0 micro 20220623
-build_ubi_manifest() {
+# build_push_manifest 9 0 micro 20220623
+build_push_manifest() {
     local -r al_version="${1}"
     local -r rel_version="${2}"
     local -r input_type="${3}"
@@ -389,6 +474,13 @@ function formatTags() {
     echo $build_tag
 }
 
+# 
+# Main function which uses `docker build` option to build images 
+# and extract rootfs files from it. Based on input params, this can 
+# handle multiple arch and multiple image types in loop
+#
+#
+#
 build_images () {
     # 8 or 9 and release version
     local -r al_version="${1}"
@@ -486,12 +578,23 @@ build_images () {
 }
 
 #
+# Utility returns most recent commit of a given file
+# used in `library/almalinux`, back reference to source repo
+# 
 # get the most recent commit which modified any of "$@"
+#
+# Usage:
+#   fileCommit "lookBackFilePathAndName"
+#
+# Example:
+#   fileCommit "library/almalinux"
 #
 fileCommit() {
 	git log -1 --format='format:%H' HEAD -- "$@"
 }
 
+#
+# Utility function to get git hash using local repo
 #
 # git rev-parse development
 # git rev-parse origin/master
@@ -505,7 +608,16 @@ gitBranchLastCommit() {
 	git rev-parse $branch
 }
 
-# Get given git branch commit json details, 
+#
+# GitHub API call to specific branch commit to get json details 
+#   Returns JSON data for further processing
+#
+# Usage:
+#   jsonLastCommit "branchName"
+#
+# Example:
+#   jsonLastCommit "al8-20220901-amd64"
+#
 jsonLastCommit() {
 	local -r branch="$1"
 	git_url="https://api.github.com/repos/k2s-ossc/docker-images/commits/$branch"
@@ -517,46 +629,98 @@ jsonLastCommit() {
 }
 
 #
+# List all branch eligible to publish from DEVL, bash version
+# Groovy version this function is used for pipeline choice options
+#
 # curl -s https://api.github.com/repos/almalinuxautobot/docker-images/branches | jq '.[] .name' | grep al8 | tr -d '"' | awk -v inp="al8-20220901" ' $1 > inp { printf $1"\n" }'
 #
-getBranchlist() {
+# Usage:
+#   getDevlLibBranchlist "OsVersion"
+#
+# Example:
+#   getDevlLibBranchlist "8"
+#   Returns:
+# al8-20220901
+# al8-20220901-015007
+# al8-20220903-015007
+# al8-20220912-002721
+# al8-20220913-041422
+#
+getDevlLibBranchlist() {
     rel="${1}"
-    prd=$(getLibrarybranch $rel)
-    curl -s https://api.github.com/repos/almalinuxautobot/docker-images/branches | jq '.[] .name' | grep al${rel} | tr -d '"' | awk -v inp="${prd}" ' $1 > inp { printf $1"\n" }'
+    prd=$(getProdLibBranchPrefix $rel)
+    curl -s https://api.github.com/repos/almalinuxautobot/docker-images/branches | jq '.[] .name' | grep al${rel} | tr -d '"' | grep -v template | awk -v inp="${prd}" ' $1 > inp { printf $1"\n" }'
     # echo $list
 }
+
 #
-# Get library file from github.com
-# curl -LO https://raw.githubusercontent.com/docker-library/official-images/master/library/almalinux
-# filter last AL8 and AL9 branch info
-# cat almalinux | grep GitFetch | sort -ru | awk 'FNR < 3 { print $2 } ' | sort
-#  OR filter al-8 or al-9 using grep
+# Utility function to get production library prefix from github.com
 #
-# getLibrarybranch 8
-# getLibrarybranch 9
+# Usage:
+#   getProdLibBranchPrefix "OsVersion"
 #
-getLibrarybranch() {
+# Example:
+#   getProdLibBranchPrefix "9"
+#     Returns "al9-20220901"
+#
+getProdLibBranchPrefix() {
 	local -r ver="${1}"
     ownerPath="${2:-docker-library/official-images/master}"
     url="https://raw.githubusercontent.com/${ownerPath}/library/almalinux"
-    ref_branch=$(curl -s $url  | grep GitFetch | sort -ru | awk 'FNR < 3 { print $2 } ' | grep al$1 | sed 's/-s390x//' | sed 's=refs/heads/==g' )
+    ref_branch=$(curl -s $url  | grep GitFetch | grep al$1 | sort -ru | awk 'FNR < 2 { print $2 } ' | sed 's/-s390x//g;s=refs/heads/==g')
     echo $ref_branch
 }
 
+#
+# Utility function to get git branch last commit full-hash
+# This function called to generate library file dynamically
+#
+# Usage:
+#   gitBranchLastCommitHash "branchName"
+#
+# Example:
+#   gitBranchLastCommitHash "al8-20220901-amd64"
+#     Returns "bedad373efe5d04b08772808df80f3b68bc3267c"
+#
 gitBranchLastCommitHash() {
 	local -r branch="$1"
-	hash=$(git ls-remote -h https://github.com/k8s-ossc/docker-images | grep "${branch}" | awk '{ print $1 }')
+	hash=$(git ls-remote -h https://github.com/AlmaLinux/docker-images | grep "${branch}" | awk '{ print $1 }')
 	# hash=$(echo $json | jq '.sha' | xargs)
     echo $hash
 }
+
+#
+# Utility function to check existance of production branch and
+# prepare new set of branch(s), on new sources. Function fails
+# when try to create new branch with existing name, no replace
+#
+# This function may be called twice, once for validate another
+# to perform action
+#
+# Usage:
+#   validateOrPrepareBranches "OsVersion" "ReleaseDate" "DevlBranch" "paramOption" "trueOrFalse" 
+#
+# Example:
+#   validateOrPrepareBranches "8" "20220903" "al8-20220903-015007" "Use Development" "false"
+#     - New branch, success
+#   validateOrPrepareBranches "8" "20220901" "al8-20220901" "No Changes" "true"
+#     - Use prod branch, success
+#   validateOrPrepareBranches "8" "20220901" "al8-20220901-015007" "Use Development" "false"
+#     - since prod already exits, fails
+#
 validateOrPrepareBranches() {
   echo "In validateOrPrepareBranches ..."
   local -r ver="${1}" 
   local -r releaseDate="${2}"
   local -r sourceBranch="${3}"
+  paramOption="${4:-No Changes}"
+  validateOnly="${5:-true}"
+  createRepoSkipNoFail="${6:-false}"
+  gitusr="${7:-skip-push}"
+  gitpwd="${8:-skip-push}"
   failOnRepoExist="true"
   createRepos="false"
-  repoUrlProd="https://github.com/k8s-ossc/docker-images"
+  repoUrlProd="https://github.com/AlmaLinux/docker-images"
   repoUrlDevl="https://github.com/almalinuxautobot/docker-images"
   repoPrefix="al${ver}-${releaseDate}"
   # needed echo to capture value is zero
@@ -580,12 +744,27 @@ validateOrPrepareBranches() {
     failOnRepoExist="false"
     createRepos="true"
   fi
-  if [[ "${failOnRepoExist}" == "true" ]]; then 
-    echo "calling exit"
+  if [[ "${failOnRepoExist}" == 'true' ]]; then 
+    if [[ "${createRepoSkipNoFail}" == 'true'  ]]; then
+      echo "failOnRepoExist: ${failOnRepoExist} and, createRepoSkipNoFail: ${createRepoSkipNoFail} returning ..."
+      return 0    
+    fi
+    echo "Exit cond: failOnRepoExist, check messages above"
     exit 12
   fi
-  if [[ "${createRepos}" == "true" ]]; then 
+  if [[ "${paramOption}" == 'No Changes'  && "${createRepos}" == 'true' ]]; then
+    echo "Exit cond: paramOption, check messages above"
+    exit 12
+  fi
+  if [[ "${validateOnly}" == 'true'  ]]; then
+    echo "Valiation complete, returning ..."
+    return 0
+  fi
+  if [[ "${createRepos}" == 'true' ]]; then 
     echo "Setting up new branches ..."
+  else
+    echo "Exit cond: createRepos is false, check messages above"
+    exit 12
   fi
   # mkdir -p work
   rm -rf "work/source${ver}"
@@ -594,8 +773,12 @@ validateOrPrepareBranches() {
   git remote add alma "${repoUrlProd}"
   git checkout -b "${repoPrefix}"
   # git push alma "${repoPrefix}"
+  if [[ "${gitusr}" != "skip-push" ]]; then
+    git push https://${gitusr}:${gitpwd}@github.com/AlmaLinux/docker-images.git "${repoPrefix}"
+  fi
   ls -al
   git branch
+  docker build --no-cache -t "al${ver}-publish" -f Dockerfile-x86_64-default .
   # 
   arch_list="x86_64 aarch64 ppc64le s390x"  
   for march in $arch_list;
@@ -616,7 +799,10 @@ validateOrPrepareBranches() {
     sleep 3
     echo "git push to prod url"
     #git push alma "${repoPrefix}-$reg_arch"
-    sleep 5
+    if [[ "${gitusr}" != "skip-push" ]]; then
+      git push https://${gitusr}:${gitpwd}@github.com/AlmaLinux/docker-images.git "${repoPrefix}-${reg_arch}"
+    fi    
+    sleep 3
     git checkout $sourceBranch
     sleep 2
   done  
@@ -627,10 +813,14 @@ validateOrPrepareBranches() {
 }
 
 #
-# page size max is 1
-# curl -s 'https://hub.docker.com/v2/namespaces/almalinux/repositories?&page=1&page_size=50' | jq '.results[] .name'
-#
 # Generate AlmaLinux 8 related tags
+#
+# Usage:
+#   almaLibrary8Tags tagDate (YYYYMMDD)
+# 
+# Example:
+#   almaLibrary8Tags "20220901"
+# 
 almaLibrary8Tags() {
     local -r tagdate="$1"
 	echo
@@ -667,7 +857,15 @@ almaLibrary8Tags() {
 	EOE
 }
 
+#
 # Generate AlmaLinux 9 related tags
+#
+# Usage:
+#   almaLibrary9Tags tagDate (YYYYMMDD)
+# 
+# Example:
+#   almaLibrary9Tags "20220901"
+# 
 almaLibrary9Tags() {
     local -r tagdate="$1"
 	echo
@@ -704,7 +902,12 @@ almaLibrary9Tags() {
 	EOE
 }
 
-# Almalinux library Header block with static history versions
+#
+# Almalinux library Header block with static block of history versions
+#
+# Usage:
+#   almaLibraryHeader
+# 
 function almaLibraryHeader() {
 	cat <<-EOH
 	# This file is generated using https://github.com/almalinux/docker-images/blob/$(fileCommit "$self")/$self
@@ -729,7 +932,15 @@ function almaLibraryHeader() {
 	EOH
 }
 
-
+#
+# Function to create environment file to process based input params
+#
+# Usage:
+#   almaEnvBuilder "fileName" "MajorVersion" "MinorVersion" "archType" "imageType" "runEnv" "runDate"
+#
+# Example:
+#   almaEnvBuilder "env.al9" "9" "0" "all" "all" "prod" "20220901"
+#
 function almaEnvBuilder() {
     local -r os="$2"
     local -r rel="$3"
@@ -744,9 +955,11 @@ function almaEnvBuilder() {
     branch="al${os}-$(date +'%Y%m%d-%H%M%S')"
     repo_prefix="docker.io/srbala quay.io/almalinuxautobot"
     repo="quay.io/almalinuxautobot"
+    gitorg="almalinuxautobot"
     if [ "${run_env}" == "prod" ]; then
         repo_prefix="docker.io/almalinux quay.io/almalinuxorg"
         repo="quay.io/almalinuxorg"
+        gitorg="AlmaLinux"
     fi
     # sysbase="srbala/bootstrap:8"
     sysbase="almalinux:${os}"
@@ -757,16 +970,16 @@ function almaEnvBuilder() {
 	al_rel_version="$rel"
 	# build_arch: all OR x86_64 aarch64 ppc64le s390x
 	al_arch="$arch"
-	# build_types: all OR default minimal micro base init
+	# build_types: all OR ubi OR default minimal micro base init
 	al_types="$type"
 	al_sysbase="$sysbase"
-	# single or multipe
-	# docker.io/srbala quay.io/almalinuxautobot
+	# single or multipe 
+	# 'quay.io/almalinuxautobot' 'docker.io/srbala quay.io/almalinuxautobot'
 	al_repo_prefix="$repo_prefix"
 	# date, today or yyyymmdd
 	al_date_suffix="$date_suffix"
 	al_git_build_branch=main
-	al_git_publish_url=https://github.com/almalinuxautobot/docker-images.git
+	al_git_publish_url=https://github.com/${gitorg}/docker-images.git
 	al_git_publish_branch="$branch"
 	## Quay.io amd64 URLs
 	SYS_BASE=${repo}/amd64:${os}.${rel}-base-$date_suffix
@@ -783,9 +996,7 @@ function almaEnvBuilder() {
 	EOH
 }
 
-
-
-# Generate the common license and copyright header
+# Generate the license and copyright header for dynamic files use
 print_env_header() {
 	cat > "$1" <<-EOI
 	# ------------------------------------------------------------------------------
@@ -796,6 +1007,14 @@ print_env_header() {
 	EOI
 }
 
+#
+# curl -LO https://raw.githubusercontent.com/docker-library/official-images/master/library/almalinux
+# filter last AL8 and AL9 branch info
+# cat almalinux | grep GitFetch | sort -ru | awk 'FNR < 3 { print $2 } ' | sort
+#  OR filter al-8 or al-9 using grep
+#
+# page size max is 1
+# curl -s 'https://hub.docker.com/v2/namespaces/almalinux/repositories?&page=1&page_size=50' | jq '.results[] .name'
 # build_image_from_repos ${1} ${2} ${3} "srbala"  $(date +%Y%m%d)
 # get_image_hash ${1}
 # get_os_release_version ${1}
@@ -803,7 +1022,7 @@ print_env_header() {
 # build_images 9 0 "all" "micro" "srbala"  $(date +%Y%m%d) "rootfs"
 # build_images 9 0 "all" "micro" "srbala1"  $(date +%Y%m%d) "repos"
 
-# build_ubi_manifest "9" "0" "micro" "quay.io/almalinuxautobot" "20220527"
+# build_push_manifest "9" "0" "micro" "quay.io/almalinuxautobot" "20220527"
 
 # build_images "9" "0" "aarch64" "base" "srbala1"  20220527 "repos"
 # validateOrPrepareBranches "8" "20220912" "al8-20220912-002721"

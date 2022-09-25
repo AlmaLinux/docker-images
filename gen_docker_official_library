@@ -1,0 +1,29 @@
+#!/bin/bash
+# Author: Bala Raman <srbala@gmail.com>
+#
+# Required tools: bash, git
+# 
+# Takes Almalinux 8 and 9 tag dates (of final publish), generates 
+# dockerhub library file from it.
+#
+# Usage:
+#   gen_docker_library tagdate8 tagdate9
+# 
+# Example:
+#   gen_docker_library 20220901 20220901
+#
+tagdate8="$1"
+tagdate9="$2"
+set -x
+self="$(basename "$BASH_SOURCE")"
+#
+# import all docker util function for build and publish
+#
+source docker_utils_functions
+
+almaLibraryHeader > .__1
+almaLibrary8Tags "${tagdate8}" >> .__1
+almaLibrary9Tags "${tagdate9}" >> .__1
+grep -v '^[+]' .__1 > __alma 
+rm .__1
+

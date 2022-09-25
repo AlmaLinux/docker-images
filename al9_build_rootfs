@@ -6,7 +6,7 @@ source env.al9
 source docker_utils_functions
 
 # build_images "9" "0" "s390x" "micro" "srbala1"  20220527 "repos"
-build_images "$al_os_version" "$al_rel_version" "$al_arch" "$al_types" "$al_repo_prefix" "$al_date_suffix" "repos" "false"
+build_images "$al_os_version" "$al_rel_version" "$al_arch" "${1}" "$al_repo_prefix" "$al_date_suffix" "repos" "false"
 
 echo ""
 echo "Moving built images to work"

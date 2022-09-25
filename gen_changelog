@@ -1,0 +1,27 @@
+#!/bin/bash
+# description: Build rootfs from repos based on environment variables
+# license: MIT.
+#
+# Utility to generate rpm package list of given container image and use it to generate
+# change log for git commit use. OsVersion param used variable for generated files
+#
+# Usage:
+#   gen_changelog "OsVersion" "newImageId" "OldImageId"
+#
+# Example
+#   gen_changelog "8" "almalinux:8" "almalinux:8.5"
+#
+docker run --rm ${2} rpm -qa --queryformat '%{name} %{version}-%{release}\n' | grep -v pubkey | sort > __changelog_al${1}_pkglist_new.log
+docker run --rm ${3} rpm -qa --queryformat '%{name} %{version}-%{release}\n' | grep -v pubkey | sort > __changelog_al${1}_pkglist_old.log
+
+CMD_PYTHON=python3
+
+if [ -x "$(command -v /usr/libexec/platform-python)" ]; then
+  CMD_PYTHON=/usr/libexec/platform-python
+fi
+${CMD_PYTHON} gen_changelog.py __changelog_al${1}_pkglist_old.log __changelog_al${1}_pkglist_new.log > __changelog_al${1}.log
+cat > "changelog_al${1}.log" <<-EOI
+### AlmaLinux ${1} change log
+
+EOI
+cat __changelog_al${1}.log  >> changelog_al${1}.log

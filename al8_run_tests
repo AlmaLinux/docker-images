@@ -8,4 +8,4 @@ docker run --rm -t \
   -e SYS_MICRO=$SYS_MICRO \
   -e SYS_DEFAULT=$SYS_DEFAULT \
   -e SYS_MINIMAL=$SYS_MINIMAL \
-  srbala/testinfra:docker pytest --verbose --junit-xml al8_junit.xml
+  srbala/testinfra:docker pytest -p no:cacheprovider --verbose --junit-xml al8_junit.xml
