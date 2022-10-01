@@ -1,0 +1,4 @@
+FROM scratch
+ADD almalinux-9-docker-s390x-minimal.tar.xz /
+
+CMD ["/bin/bash"]
