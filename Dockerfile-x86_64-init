@@ -1,0 +1,6 @@
+FROM scratch
+ADD almalinux-9-docker-x86_64-init.tar.xz /
+
+CMD ["/sbin/init"]
+
+STOPSIGNAL SIGRTMIN+3
