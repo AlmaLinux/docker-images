@@ -701,11 +701,11 @@ gitBranchLastCommitHash() {
 #   validateOrPrepareBranches "OsVersion" "ReleaseDate" "DevlBranch" "paramOption" "trueOrFalse" 
 #
 # Example:
-#   validateOrPrepareBranches "8" "20220903" "al8-20220903-015007" "Use Development" "false"
+#   validateOrPrepareBranches "8" "20220903" "al8-20220903-015007" "Get Branches" "false"
 #     - New branch, success
 #   validateOrPrepareBranches "8" "20220901" "al8-20220901" "No Changes" "true"
 #     - Use prod branch, success
-#   validateOrPrepareBranches "8" "20220901" "al8-20220901-015007" "Use Development" "false"
+#   validateOrPrepareBranches "8" "20220901" "al8-20220901-015007" "Get Branches" "false"
 #     - since prod already exits, fails
 #
 validateOrPrepareBranches() {
@@ -740,7 +740,7 @@ validateOrPrepareBranches() {
       createRepos="false"
     fi
   else
-    echo "New production branches using prefix ${repoPrefix} will be created based on ${sourceBranch} (Use Development) ..."  
+    echo "New production branches using prefix ${repoPrefix} will be created based on ${sourceBranch} (Get Branches) ..."  
     failOnRepoExist="false"
     createRepos="true"
   fi
