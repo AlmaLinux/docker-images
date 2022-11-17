@@ -622,7 +622,7 @@ jsonLastCommit() {
 	local -r branch="$1"
 	git_url="https://api.github.com/repos/k2s-ossc/docker-images/commits/$branch"
     # TODO fix run_env
-	if [ "${run_env}" == "prod" ]; then
+	if [ "${run_env}" == "prd" ]; then
 		git_url="https://api.github.com/repos/almalinux/docker-images/commits/$branch"
 	fi
 	curl -s $git_url 
@@ -825,7 +825,7 @@ almaLibrary8Tags() {
     local -r tagdate="$1"
 	echo
 	cat <<-EOE
-		Tags: latest, 8, 8.6, 8.6-$tagdate
+		Tags: latest, 8, 8.7, 8.7-$tagdate
 		GitFetch: refs/heads/al8-$tagdate-amd64
 		GitCommit: $(gitBranchLastCommitHash "al8-$tagdate-amd64")
 		amd64-File: Dockerfile-x86_64-default
@@ -840,7 +840,7 @@ almaLibrary8Tags() {
 		s390x-File: Dockerfile-s390x-default
 		Architectures: amd64, arm64v8, ppc64le, s390x
 
-		Tags: minimal, 8-minimal, 8.6-minimal, 8.6-minimal-$tagdate
+		Tags: minimal, 8-minimal, 8.7-minimal, 8.7-minimal-$tagdate
 		GitFetch: refs/heads/al8-$tagdate-amd64
 		GitCommit: $(gitBranchLastCommitHash "al8-$tagdate-amd64")
 		amd64-File: Dockerfile-x86_64-minimal
@@ -870,7 +870,7 @@ almaLibrary9Tags() {
     local -r tagdate="$1"
 	echo
 	cat <<-EOE
-		Tags: 9, 9.0, 9.0-$tagdate
+		Tags: 9, 9.1, 9.1-$tagdate
 		GitFetch: refs/heads/al9-$tagdate-amd64
 		GitCommit: $(gitBranchLastCommitHash "al9-$tagdate-amd64")
 		amd64-File: Dockerfile-x86_64-default
@@ -885,7 +885,7 @@ almaLibrary9Tags() {
 		s390x-File: Dockerfile-s390x-default
 		Architectures: amd64, arm64v8, ppc64le, s390x
 
-		Tags: 9-minimal,  9.0-minimal, 9.0-minimal-$tagdate
+		Tags: 9-minimal,  9.1-minimal, 9.1-minimal-$tagdate
 		GitFetch: refs/heads/al9-$tagdate-amd64
 		GitCommit: $(gitBranchLastCommitHash "al9-$tagdate-amd64")
 		amd64-File: Dockerfile-x86_64-minimal
@@ -914,21 +914,6 @@ function almaLibraryHeader() {
 	Maintainers: The AlmaLinux OS Foundation <cloud-infra@almalinux.org> (@AlmaLinux)
 	GitRepo: https://github.com/AlmaLinux/docker-images.git
 
-	Tags: 8.5, 8.5-20220510
-	GitFetch: refs/heads/al-8.5.4-20220510
-	GitCommit: cc33e53ccd8b33288eb3fbce9fd3bc308272c162
-	amd64-File: Dockerfile-x86_64-default
-	arm64v8-File: Dockerfile-aarch64-default
-	ppc64le-File: Dockerfile-ppc64le-default
-	Architectures: amd64, arm64v8, ppc64le
-
-	Tags: 8.5-minimal, 8.5-minimal-20220510
-	GitFetch: refs/heads/al-8.5.4-20220510
-	GitCommit: cc33e53ccd8b33288eb3fbce9fd3bc308272c162
-	amd64-File: Dockerfile-x86_64-minimal
-	arm64v8-File: Dockerfile-aarch64-minimal
-	ppc64le-File: Dockerfile-ppc64le-minimal
-	Architectures: amd64, arm64v8, ppc64le
 	EOH
 }
 
@@ -939,7 +924,7 @@ function almaLibraryHeader() {
 #   almaEnvBuilder "fileName" "MajorVersion" "MinorVersion" "archType" "imageType" "runEnv" "runDate"
 #
 # Example:
-#   almaEnvBuilder "env.al9" "9" "0" "all" "all" "prod" "20220901"
+#   almaEnvBuilder "env.al9" "9" "0" "all" "all" "prd" "20220901"
 #
 function almaEnvBuilder() {
     local -r os="$2"
@@ -956,7 +941,7 @@ function almaEnvBuilder() {
     repo_prefix="docker.io/srbala quay.io/almalinuxautobot"
     repo="quay.io/almalinuxautobot"
     gitorg="almalinuxautobot"
-    if [ "${run_env}" == "prod" ]; then
+    if [ "${run_env}" == "prd" ]; then
         repo_prefix="docker.io/almalinux quay.io/almalinuxorg"
         repo="quay.io/almalinuxorg"
         gitorg="AlmaLinux"
@@ -1028,7 +1013,7 @@ print_env_header() {
 # validateOrPrepareBranches "8" "20220912" "al8-20220912-002721"
 # validateOrPrepareBranches "9" "20220912" "al9-20220912-003034"
 # archLoop
-# run_env="devl"
+# run_env="dev"
 # gitBranchLastCommitHash "al8-20220912-amd64"
 # gitBranchLastCommitHash "al9-20220912-amd64"
 # gitBranchLastCommitHash "al8-20220901-amd64"
