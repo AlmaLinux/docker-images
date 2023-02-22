@@ -1,0 +1,6 @@
+FROM scratch
+ADD almalinux-8-docker-s390x-init.tar.xz /
+
+CMD ["/sbin/init"]
+
+STOPSIGNAL SIGRTMIN+3
