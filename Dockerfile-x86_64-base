@@ -1,0 +1,4 @@
+FROM scratch
+ADD almalinux-9-docker-x86_64-base.tar.xz /
+
+CMD ["/bin/bash"]
