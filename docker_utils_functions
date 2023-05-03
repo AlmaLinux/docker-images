@@ -11,14 +11,14 @@ OPTIND=1
 
 #
 # Utility function to returns OS Release Name
-# 
+#
 # Usage:
 #   get_os_release image-id
 #
 # Example:
 #   get_os_release almalinux:9
-#      Return `AlmaLinux release 9.0 (Emerald Puma)` 
-# 
+#      Return `AlmaLinux release 9.0 (Emerald Puma)`
+#
 get_os_release() {
     local -r image=${1}
     # issue docker pull, redirect messages to null
@@ -29,14 +29,14 @@ get_os_release() {
 
 #
 # Utility function to returns OS Release Version
-# 
+#
 # Usage:
 #   get_os_release image-id
 #
 # Example:
 #   get_os_release almalinux:9
-#      Return `9.0` 
-# 
+#      Return `9.0`
+#
 get_os_release_version() {
     local -r image=${1}
     # issue docker pull, redirect messages to null
@@ -49,14 +49,14 @@ get_os_release_version() {
 #
 # Utility function to returns docker image hash value
 # When given image is not available, pulled from remote registory
-# 
+#
 # Usage:
 #   get_os_release image-id
 #
 # Example:
 #   get_image_hash almalinux:9
-#      Return `sha256:d5c6ee0317ab996cc7684a6dcbffb061bdaec76e46e9f301be0bd3a41bed3493` 
-# 
+#      Return `sha256:d5c6ee0317ab996cc7684a6dcbffb061bdaec76e46e9f301be0bd3a41bed3493`
+#
 get_image_hash() {
     local -r image=${1}
     # issue docker pull, redirect messages to null
@@ -142,14 +142,14 @@ get_build_arch() {
     local -r version=${1}
     case "${arch}" in
         x86_64|aarch64|ppc64le|s390x)
-            echo "${arch}";;    
+            echo "${arch}";;
         all)
             case "${version}" in
                 8)
                     echo 'x86_64 aarch64 ppc64le s390x';;
                 9)
-                    echo 'x86_64 aarch64 ppc64le s390x';;   
-            esac 
+                    echo 'x86_64 aarch64 ppc64le s390x';;
+            esac
             ;;
         *)
             echo "Error: unsupported architecture ${arch}" 1>&2
@@ -163,7 +163,7 @@ get_build_arch() {
 # Used to populate image type list for processing single or all
 #
 # Usage:
-#   get_build_types imageType 
+#   get_build_types imageType
 #
 # Example:
 #   get_build_types "micro"
@@ -175,7 +175,7 @@ get_build_types() {
     local -r type="${1}"
     case "${type}" in
         default|minimal|micro|base|init)
-            echo "${type}";;    
+            echo "${type}";;
         all)
             echo 'default minimal micro base init';;
         official)
@@ -194,7 +194,7 @@ get_build_types() {
 # used for output filenames based on $(uname -m)
 #
 # Usage:
-#   get_machine_arch imageType 
+#   get_machine_arch imageType
 #
 # Example:
 #   get_machine_arch "amd64"
@@ -206,7 +206,7 @@ get_machine_arch() {
     local -r arch="${1}"
     case "${arch}" in
         x86_64|aarch64|ppc64le|s390x)
-            echo "${arch}";;    
+            echo "${arch}";;
         amd64)
             echo 'x86_64';;
         arm64/v8|arm64|arm64v8)
@@ -236,17 +236,17 @@ check_build_support_arch() {
         8)
             case "${arch}" in
                 x86_64|aarch64|ppc64le|s390x|all)
-                    echo "supported";;     
+                    echo "supported";;
                 *)
                     echo "Error: unsupported architecture ${arch} for version ${version}" 1>&2
                     exit 2
                     ;;
             esac
             ;;
-        9)    
+        9)
             case "${arch}" in
                 x86_64|aarch64|ppc64le|s390x|all)
-                    echo "supported";;    
+                    echo "supported";;
                 *)
                     echo "Error: unsupported architecture ${arch} for version ${version}" 1>&2
                     exit 2
@@ -255,12 +255,12 @@ check_build_support_arch() {
             ;;
         *)
             echo "Error: unsupported version ${arch}" 1>&2
-            exit 2   
+            exit 2
             ;;
-    esac         
+    esac
 }
 
-# 
+#
 # Function for internal reference use only.
 # Build for singleArch, singleType of container image from public repo
 #
@@ -280,7 +280,7 @@ build_single_image_using_repos(){
 }
 
 #
-# Function to build one container image from rootfs files, 
+# Function to build one container image from rootfs files,
 # usually right before publishing the images. This function defined
 # internal use only
 #
@@ -308,7 +308,7 @@ build_single_image_using_rootfs(){
 
     ## TODO: replace buildx ? build and push together
     docker build "--platform=linux/${arch_platform}" ${tag_list} -f "Dockerfile-${arch_machine}-${type}" .
-    
+
     # Circle thru to publish
     if [[ "$skip" == "false" ]]; then
         for tag  in $tags
@@ -329,7 +329,7 @@ gen_rootfs() {
     local rootfs_tmp="rootfs_tmp_${2}"
 
     tcnt=$(docker inspect $image | jq '.[] | .RootFS.Layers | length')
-    
+
     echo "Found $tcnt layer(s) in image '$image'."
     if [ $tcnt -ne 1 ]; then
         echo "Only single layer image is supported at this time. Use '--squash' option to create single layer image."
@@ -378,7 +378,7 @@ pull_docker_official() {
     if [[ $type == "minimal" ]]; then
         tag="$tag-$type"
     fi
-# pull with full release tag from docker    
+# pull with full release tag from docker
     local tag1=$tag
     tag="$tag-$date_suffix"
     echo "docker pull docker.io/amd64/almalinux:$tag1"
@@ -410,15 +410,15 @@ build_push_manifest() {
     local -r tags="latest ${1} ${1}.${2} ${1}.${2}-${5}"
     local types=$(get_build_types ${input_type})
 
-    for repo_prefix in $repos; 
-    do     
-        for type in $types; 
-        do 
+    for repo_prefix in $repos;
+    do
+        for type in $types;
+        do
             if [[ $repo_prefix == *"docker"* &&  $type == "default" ]]; then
                 echo "No place holder for default in user space"
             else
             if [[ $type == "default" || $type == "minimal" ]]; then
-                pull_docker_official "${1}" "${2}" "${type}" "${repo_prefix}" "${5}" 
+                pull_docker_official "${1}" "${2}" "${type}" "${repo_prefix}" "${5}"
             else
                 build_images "${1}" "${2}" "all" "${type}" "${repo_prefix}" "${5}" "rootfs" "false"
             fi
@@ -437,18 +437,18 @@ build_push_manifest() {
                 part1="$part1:$tag"
                 local tag_suffix="${al_version}.${rel_version}${stype}-${date_suffix}"
                 part2="${part2} --amend ${repo_prefix}/amd64:${tag_suffix}"
-                part2="${part2} --amend ${repo_prefix}/arm64v8:${tag_suffix}" 
+                part2="${part2} --amend ${repo_prefix}/arm64v8:${tag_suffix}"
                 part2="${part2} --amend ${repo_prefix}/ppc64le:${tag_suffix}"
                 #if [ "${al_version}" == '9' ]; then
                     part2="${part2} --amend ${repo_prefix}/s390x:${tag_suffix}"
-                #fi   
+                #fi
                 # echo "Part1: ${part1}"
                 # echo "Part2: ${part2}"
-                # rm returns error when repo/tag not found 
+                # rm returns error when repo/tag not found
                 # docker manifest rm $part1
                 docker manifest create ${part1} ${part2}
                 docker manifest push "${part1}"
-            done   
+            done
             fi
         done
     done
@@ -466,17 +466,17 @@ function formatTags() {
     do
         build_tag=${build_tag}${repo_prefix}'/'$(get_registry_arch ${arch})$separator${al_version}.${rel_version}
         if [ "$type" == "default" ]; then
-            build_tag="${build_tag}-${tag_date} " 
-        else   
+            build_tag="${build_tag}-${tag_date} "
+        else
             build_tag="${build_tag}-${type}-${tag_date} "
         fi
     done
     echo $build_tag
 }
 
-# 
-# Main function which uses `docker build` option to build images 
-# and extract rootfs files from it. Based on input params, this can 
+#
+# Main function which uses `docker build` option to build images
+# and extract rootfs files from it. Based on input params, this can
 # handle multiple arch and multiple image types in loop
 #
 #
@@ -485,7 +485,7 @@ build_images () {
     # 8 or 9 and release version
     local -r al_version="${1}"
     local -r rel_version="${2}"
-    # input arch env, 
+    # input arch env,
     local -r input_arch="${3}"
     # input type env
     local -r input_type="${4}"
@@ -504,18 +504,18 @@ build_images () {
     echo "*              JOB INPUT VALUES                *"
     echo "*                                              *"
     echo "************************************************"
-    echo "Input version     : ${al_version}.${rel_version}" 
-    echo "Input Arch        : ${input_arch}" 
-    echo "Input type        : ${input_type}" 
-    echo "repos             : ${repos}" 
-    echo "date_tag          : ${tag_date}" 
-    echo "Input source      : ${from}" 
-    echo "Computed arch list: ${arch_list}" 
-    echo "Computed type list: ${type_list}" 
+    echo "Input version     : ${al_version}.${rel_version}"
+    echo "Input Arch        : ${input_arch}"
+    echo "Input type        : ${input_type}"
+    echo "repos             : ${repos}"
+    echo "date_tag          : ${tag_date}"
+    echo "Input source      : ${from}"
+    echo "Computed arch list: ${arch_list}"
+    echo "Computed type list: ${type_list}"
     echo "************************************************"
 
     if [[ -z "$type_list" ]]; then
-        echo "Validating input type failed ... ${input_type}" 
+        echo "Validating input type failed ... ${input_type}"
         exit 2
     fi
 
@@ -526,7 +526,7 @@ build_images () {
 
     status=$(check_build_support_arch "${1}" "${3}")
 
-    echo "Validating input values ... ${status}" 
+    echo "Validating input values ... ${status}"
     local repo_prefix="docker.io/srbala"
 
     if [[ $status == 'supported' && ! -z "$type_list" ]];  then
@@ -555,7 +555,7 @@ build_images () {
                 #build_tag=${repo_prefix}'/'$(get_registry_arch ${arch})$repo_sep${al_version}.${rel_version}
                 #if [ "$type" == "default" ]; then
                 #    build_tag=$build_tag'-'$tag_date
-                #else   
+                #else
                 #    build_tag=$build_tag'-'$type'-'$tag_date
                 #fi
                 echo "Computed build tag: ${build_tag} from '${tags1}'"
@@ -580,7 +580,7 @@ build_images () {
 #
 # Utility returns most recent commit of a given file
 # used in `library/almalinux`, back reference to source repo
-# 
+#
 # get the most recent commit which modified any of "$@"
 #
 # Usage:
@@ -601,7 +601,7 @@ fileCommit() {
 # git rev-parse master~3
 # git rev-parse HEAD@{2.days.ago}
 #
-# Get head commit of given git-branch 
+# Get head commit of given git-branch
 #
 gitBranchLastCommit() {
 	local -r branch="$1"
@@ -609,7 +609,7 @@ gitBranchLastCommit() {
 }
 
 #
-# GitHub API call to specific branch commit to get json details 
+# GitHub API call to specific branch commit to get json details
 #   Returns JSON data for further processing
 #
 # Usage:
@@ -625,7 +625,7 @@ jsonLastCommit() {
 	if [ "${run_env}" == "prd" ]; then
 		git_url="https://api.github.com/repos/almalinux/docker-images/commits/$branch"
 	fi
-	curl -s $git_url 
+	curl -s $git_url
 }
 
 #
@@ -698,7 +698,7 @@ gitBranchLastCommitHash() {
 # to perform action
 #
 # Usage:
-#   validateOrPrepareBranches "OsVersion" "ReleaseDate" "DevlBranch" "paramOption" "trueOrFalse" 
+#   validateOrPrepareBranches "OsVersion" "ReleaseDate" "DevlBranch" "paramOption" "trueOrFalse"
 #
 # Example:
 #   validateOrPrepareBranches "8" "20220903" "al8-20220903-015007" "Get Branches" "false"
@@ -710,7 +710,7 @@ gitBranchLastCommitHash() {
 #
 validateOrPrepareBranches() {
   echo "In validateOrPrepareBranches ..."
-  local -r ver="${1}" 
+  local -r ver="${1}"
   local -r releaseDate="${2}"
   local -r sourceBranch="${3}"
   paramOption="${4:-No Changes}"
@@ -735,19 +735,19 @@ validateOrPrepareBranches() {
       failOnRepoExist="false"
       createRepos="false"
     else
-      echo "Input source branch does not match ${repoPrefix}, but production branches already exits ..." 
+      echo "Input source branch does not match ${repoPrefix}, but production branches already exits ..."
       failOnRepoExist="true"
       createRepos="false"
     fi
   else
-    echo "New production branches using prefix ${repoPrefix} will be created based on ${sourceBranch} (Get Branches) ..."  
+    echo "New production branches using prefix ${repoPrefix} will be created based on ${sourceBranch} (Get Branches) ..."
     failOnRepoExist="false"
     createRepos="true"
   fi
-  if [[ "${failOnRepoExist}" == 'true' ]]; then 
+  if [[ "${failOnRepoExist}" == 'true' ]]; then
     if [[ "${createRepoSkipNoFail}" == 'true'  ]]; then
       echo "failOnRepoExist: ${failOnRepoExist} and, createRepoSkipNoFail: ${createRepoSkipNoFail} returning ..."
-      return 0    
+      return 0
     fi
     echo "Exit cond: failOnRepoExist, check messages above"
     exit 12
@@ -760,7 +760,7 @@ validateOrPrepareBranches() {
     echo "Valiation complete, returning ..."
     return 0
   fi
-  if [[ "${createRepos}" == 'true' ]]; then 
+  if [[ "${createRepos}" == 'true' ]]; then
     echo "Setting up new branches ..."
   else
     echo "Exit cond: createRepos is false, check messages above"
@@ -779,8 +779,8 @@ validateOrPrepareBranches() {
   ls -al
   git branch
   docker build --no-cache -t "al${ver}-publish" -f Dockerfile-x86_64-default .
-  # 
-  arch_list="x86_64 aarch64 ppc64le s390x"  
+  #
+  arch_list="x86_64 aarch64 ppc64le s390x"
   for march in $arch_list;
   do
     reg_arch=$(get_registry_arch ${march})
@@ -801,11 +801,11 @@ validateOrPrepareBranches() {
     #git push alma "${repoPrefix}-$reg_arch"
     if [[ "${gitusr}" != "skip-push" ]]; then
       git push https://${gitusr}:${gitpwd}@github.com/AlmaLinux/docker-images.git "${repoPrefix}-${reg_arch}"
-    fi    
+    fi
     sleep 3
     git checkout $sourceBranch
     sleep 2
-  done  
+  done
   git branch
   cd ../..
 #  rm -rf "work/source${ver}"
@@ -817,15 +817,15 @@ validateOrPrepareBranches() {
 #
 # Usage:
 #   almaLibrary8Tags tagDate (YYYYMMDD)
-# 
+#
 # Example:
 #   almaLibrary8Tags "20220901"
-# 
+#
 almaLibrary8Tags() {
     local -r tagdate="$1"
 	echo
 	cat <<-EOE
-		Tags: latest, 8, 8.7, 8.7-$tagdate
+		Tags: 8, 8.7, 8.7-$tagdate
 		GitFetch: refs/heads/al8-$tagdate-amd64
 		GitCommit: $(gitBranchLastCommitHash "al8-$tagdate-amd64")
 		amd64-File: Dockerfile-x86_64-default
@@ -840,7 +840,7 @@ almaLibrary8Tags() {
 		s390x-File: Dockerfile-s390x-default
 		Architectures: amd64, arm64v8, ppc64le, s390x
 
-		Tags: minimal, 8-minimal, 8.7-minimal, 8.7-minimal-$tagdate
+		Tags: 8-minimal, 8.7-minimal, 8.7-minimal-$tagdate
 		GitFetch: refs/heads/al8-$tagdate-amd64
 		GitCommit: $(gitBranchLastCommitHash "al8-$tagdate-amd64")
 		amd64-File: Dockerfile-x86_64-minimal
@@ -862,15 +862,15 @@ almaLibrary8Tags() {
 #
 # Usage:
 #   almaLibrary9Tags tagDate (YYYYMMDD)
-# 
+#
 # Example:
 #   almaLibrary9Tags "20220901"
-# 
+#
 almaLibrary9Tags() {
     local -r tagdate="$1"
 	echo
 	cat <<-EOE
-		Tags: 9, 9.1, 9.1-$tagdate
+		Tags: latest, 9, 9.2, 9.2-$tagdate
 		GitFetch: refs/heads/al9-$tagdate-amd64
 		GitCommit: $(gitBranchLastCommitHash "al9-$tagdate-amd64")
 		amd64-File: Dockerfile-x86_64-default
@@ -885,7 +885,7 @@ almaLibrary9Tags() {
 		s390x-File: Dockerfile-s390x-default
 		Architectures: amd64, arm64v8, ppc64le, s390x
 
-		Tags: 9-minimal,  9.1-minimal, 9.1-minimal-$tagdate
+		Tags: minimal, 9-minimal,  9.2-minimal, 9.2-minimal-$tagdate
 		GitFetch: refs/heads/al9-$tagdate-amd64
 		GitCommit: $(gitBranchLastCommitHash "al9-$tagdate-amd64")
 		amd64-File: Dockerfile-x86_64-minimal
@@ -907,7 +907,7 @@ almaLibrary9Tags() {
 #
 # Usage:
 #   almaLibraryHeader
-# 
+#
 function almaLibraryHeader() {
 	cat <<-EOH
 	# This file is generated using https://github.com/almalinux/docker-images/blob/$(fileCommit "$self")/$self
@@ -958,7 +958,7 @@ function almaEnvBuilder() {
 	# build_types: all OR ubi OR default minimal micro base init
 	al_types="$type"
 	al_sysbase="$sysbase"
-	# single or multipe 
+	# single or multipe
 	# 'quay.io/almalinuxautobot' 'docker.io/srbala quay.io/almalinuxautobot'
 	al_repo_prefix="$repo_prefix"
 	# date, today or yyyymmdd
