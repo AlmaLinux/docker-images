@@ -11,10 +11,10 @@ Docker images are created using AlmaLinux `rootfs` images. These images can be c
 
 You need an **AlmaLinux system** with following RPM packages installed to run the `build.sh` script to create `rootfs` file.
 
-* anaconda-tui
-* lorax
-* subscription-manager (make sure the `rhsm` service is running, see [rhbz#1872902](https://bugzilla.redhat.com/show_bug.cgi?id=1872902))
-* jq
+- anaconda-tui
+- lorax
+- subscription-manager (make sure the `rhsm` service is running, see [rhbz#1872902](https://bugzilla.redhat.com/show_bug.cgi?id=1872902))
+- jq
 
 ```sh
 ./build.sh -h
@@ -120,9 +120,9 @@ Please make note docker utility cannot be used to generate `micro` and `minimal`
 
 ## References
 
-* Docker documentaion - [Create a base image](https://docs.docker.com/develop/develop-images/baseimages/)
-* Opencontainers [image-spec annotations/labels](https://github.com/opencontainers/image-spec/blob/master/annotations.md)
-* RedHat [Kickstart Reference guide](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/system_design_guide/kickstart-script-file-format-reference_system-design-guide)
+- Docker documentaion - [Create a base image](https://docs.docker.com/develop/develop-images/baseimages/)
+- Opencontainers [image-spec annotations/labels](https://github.com/opencontainers/image-spec/blob/master/annotations.md)
+- RedHat [Kickstart Reference guide](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/system_design_guide/kickstart-script-file-format-reference_system-design-guide)
 
 ## License
 

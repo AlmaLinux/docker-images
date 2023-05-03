@@ -44,7 +44,7 @@ LABEL com.redhat.component="ubi8-minimal-container" \
       name="ubi8-minimal" \
       version="8.4"
 
-#label for EULA 
+#label for EULA
 LABEL com.redhat.license_terms="https://www.redhat.com/en/about/red-hat-end-user-license-agreements#UBI"
 
 #labels for container catalog
@@ -61,7 +61,6 @@ CMD ["/bin/bash"]
 
 RUN rm -rf /var/log/*
 ```
-
 
 [redhat/ubi8-micro](https://catalog.redhat.com/software/containers/ubi8/ubi-micro/5ff3f50a831939b08d1b832a?container-tabs=dockerfile)
 
