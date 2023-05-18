@@ -825,7 +825,7 @@ almaLibrary8Tags() {
     local -r tagdate="$1"
 	echo
 	cat <<-EOE
-		Tags: latest, 8, 8.8, 8.8-$tagdate
+		Tags: 8, 8.8, 8.8-$tagdate
 		GitFetch: refs/heads/al8-$tagdate-amd64
 		GitCommit: $(gitBranchLastCommitHash "al8-$tagdate-amd64")
 		amd64-File: Dockerfile-x86_64-default
@@ -840,7 +840,7 @@ almaLibrary8Tags() {
 		s390x-File: Dockerfile-s390x-default
 		Architectures: amd64, arm64v8, ppc64le, s390x
 
-		Tags: minimal, 8-minimal, 8.8-minimal, 8.8-minimal-$tagdate
+		Tags: 8-minimal, 8.8-minimal, 8.8-minimal-$tagdate
 		GitFetch: refs/heads/al8-$tagdate-amd64
 		GitCommit: $(gitBranchLastCommitHash "al8-$tagdate-amd64")
 		amd64-File: Dockerfile-x86_64-minimal
@@ -870,7 +870,7 @@ almaLibrary9Tags() {
     local -r tagdate="$1"
 	echo
 	cat <<-EOE
-		Tags: 9, 9.1, 9.1-$tagdate
+		Tags: latest, 9, 9.2, 9.2-$tagdate
 		GitFetch: refs/heads/al9-$tagdate-amd64
 		GitCommit: $(gitBranchLastCommitHash "al9-$tagdate-amd64")
 		amd64-File: Dockerfile-x86_64-default
@@ -885,7 +885,7 @@ almaLibrary9Tags() {
 		s390x-File: Dockerfile-s390x-default
 		Architectures: amd64, arm64v8, ppc64le, s390x
 
-		Tags: 9-minimal,  9.1-minimal, 9.1-minimal-$tagdate
+		Tags: minimal, 9-minimal,  9.2-minimal, 9.2-minimal-$tagdate
 		GitFetch: refs/heads/al9-$tagdate-amd64
 		GitCommit: $(gitBranchLastCommitHash "al9-$tagdate-amd64")
 		amd64-File: Dockerfile-x86_64-minimal
