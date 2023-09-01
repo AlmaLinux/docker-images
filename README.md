@@ -8,10 +8,10 @@ This project contains sources and tools for building [Official AlmaLinux Images]
 
 ## Local development
 
-This project `master` contains the sources to create all images. Make sure to use `--single-branch` with `--depth=1` for any local development. Otherwise the clone will all branch data which would be unnecessary. Check `Build Requirements` below for more details
+The branch `main` contains the sources to create all images. Make sure to use `--single-branch` with `--depth=1` for any local development. Otherwise, git will clone all branches, which would be unnecessary. Check `Build Requirements` below for more details
 
 ```
-git clone --single-branch --branch=master --depth=1  https://github.com/AlmaLinux/docker-images.git
+git clone --single-branch --branch=main --depth=1  https://github.com/AlmaLinux/docker-images.git
 ```
 
 ## About this image
