@@ -23,7 +23,7 @@ RUN mkdir /mnt/sys-root; \
     yum \
     xz \ 
     ; \
-    dnf --installroot /mnt/sys-root clean all; \
+    dnf --installroot /mnt/sys-root clean all;
 # Additional hacks for kickstart file and backward compatable support    
 RUN rm -rf /mnt/sys-root/var/log/dnf* /mnt/sys-root/var/log/yum.* ; \
     rm -rf /mnt/sys-root/var/cache/dnf/* /mnt/sys-root/var/lib/dnf/repos /mnt/sys-root/boot /mnt/sys-root/dev/null ; \
