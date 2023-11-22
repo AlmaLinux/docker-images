@@ -11,6 +11,6 @@ file="env.al9"
 echo
 echo -n "Writing ${file} ... "
 print_env_header "${file}";
-almaEnvBuilder  "${file}" "9" "2" "all" "all" "devl" "today"
+almaEnvBuilder  "${file}" "9" "3" "all" "all" "devl" "today"
 echo -n " done!"
 echo
