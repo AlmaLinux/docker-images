@@ -39,7 +39,7 @@ RUN mkdir /mnt/sys-root; \
     /bin/date +%Y%m%d_%H%M > /mnt/sys-root/etc/BUILDTIME; \
     echo '%_install_langs C.utf8' > /mnt/sys-root/etc/rpm/macros.image-language-conf; \
     echo 'LANG="C.utf8"' >  /mnt/sys-root/etc/locale.conf; \
-    echo 'container' > c/etc/dnf/vars/infra; \
+    echo 'container' > /mnt/sys-root/etc/dnf/vars/infra; \
     rm -f /mnt/sys-root/etc/machine-id; \
     touch /mnt/sys-root/etc/machine-id; \
     touch /mnt/sys-root/etc/resolv.conf
