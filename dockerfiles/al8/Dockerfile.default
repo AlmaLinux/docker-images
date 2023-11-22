@@ -11,7 +11,7 @@ RUN mkdir /mnt/sys-root; \
     coreutils-single \
     dnf \
     findutils \
-    glibc-minimal-langpack \ 
+    glibc-minimal-langpack \
     hostname \
     iputils \
     langpacks-en \
@@ -21,10 +21,10 @@ RUN mkdir /mnt/sys-root; \
     tar \
     vim-minimal \
     yum \
-    xz \ 
+    xz \
     ; \
     dnf --installroot /mnt/sys-root clean all;
-# Additional hacks for kickstart file and backward compatable support    
+# Additional hacks for kickstart file and backward compatable support
 RUN rm -rf /mnt/sys-root/var/log/dnf* /mnt/sys-root/var/log/yum.* ; \
     rm -rf /mnt/sys-root/var/cache/dnf/* /mnt/sys-root/var/lib/dnf/repos /mnt/sys-root/boot /mnt/sys-root/dev/null ; \
     rm -rf /mnt/sys-root/var/lib/dnf/history* /mnt/sys-root/var/log/hawkey.log /mnt/sys-root/var/log/*  ; \
@@ -47,7 +47,8 @@ RUN rm -rf /mnt/sys-root/var/log/dnf* /mnt/sys-root/var/log/yum.* ; \
     echo 'FONT="eurlatgr"' >> /mnt/sys-root/etc/vconsole.conf; \
     rm -rf /mnt/sys-root/usr/share/locale/en_US@piglati* /mnt/sys-root/run/blkid  ; \
     rm -f /mnt/sys-root/etc/machine-id; \
-    touch /mnt/sys-root/etc/machine-id; 
+    touch /mnt/sys-root/etc/machine-id; \
+    touch /mnt/sys-root/etc/resolv.conf
 
 FROM scratch as stage2
 COPY --from=system-build /mnt/sys-root/ /
@@ -58,9 +59,9 @@ RUN systemctl set-default multi-user.target; \
     sys-fs-fuse-connections.mount \
     systemd-logind.service \
     getty.target \
-    console-getty.service ; 
+    console-getty.service ;
 
-FROM scratch 
+FROM scratch
 COPY --from=stage2 / /
 
 ENV LANG=C.utf8
