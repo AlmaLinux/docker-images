@@ -1,0 +1,4 @@
+FROM scratch
+ADD almalinux-8-docker-ppc64le-minimal.tar.xz /
+
+CMD ["/bin/bash"]
