@@ -24,8 +24,8 @@ RUN mkdir /mnt/sys-root; \
     --setopt install_weak_deps=false \
     --nodocs \
     krb5-libs ; \
-    dnf --installroot /mnt/sys-root clean all; 
-# Additional hacks for kickstart file and backward compatable support    
+    dnf --installroot /mnt/sys-root clean all;
+# Additional hacks for kickstart file and backward compatable support
 RUN rm -rf /mnt/sys-root/var/log/dnf* /mnt/sys-root/var/log/yum.* /mnt/sys-root/var/cache/dnf /mnt/sys-root/var/lib/dnf/repos; \
     rm -rf /mnt/sys-root/var/lib/dnf/history* /mnt/sys-root/var/log/hawkey.log /mnt/sys-root/boot /mnt/sys-root/dev/null /mnt/sys-root/run/*; \
     mkdir -p /mnt/sys-root/run/lock; \
@@ -48,6 +48,7 @@ RUN rm -rf /mnt/sys-root/var/log/dnf* /mnt/sys-root/var/log/yum.* /mnt/sys-root/
     rm -rf /mnt/sys-root/usr/share/locale/en_CA/ /mnt/sys-root/usr/share/locale/en_GB/ /mnt/sys-root/usr/share/i18n/charmaps /mnt/sys-root/usr/share/i18n/locales ;\
     rm -f /mnt/sys-root/etc/machine-id; \
     touch /mnt/sys-root/etc/machine-id; \
+    touch /mnt/sys-root/etc/resolv.conf; \
     mkdir -p /mnt/sys-root/var/cache/private /mnt/sys-root/var/lib/private /mnt/sys-root/var/lib/systemd/coredump ;\
     chmod 700 /mnt/sys-root/var/cache/private ; \
     chmod 700 /mnt/sys-root/var/lib/private ; \
@@ -58,10 +59,10 @@ RUN rm -rf /mnt/sys-root/var/log/dnf* /mnt/sys-root/var/log/yum.* /mnt/sys-root/
     cd /mnt/sys-root/etc ; \
     ln -s ../usr/share/zoneinfo/UTC localtime ; \
     cd /mnt/sys-root/etc/systemd/system ; \
-    ln -s /usr/lib/systemd/system/multi-user.target default.target 
+    ln -s /usr/lib/systemd/system/multi-user.target default.target
 
 # Almalinux minimal build
-FROM scratch 
+FROM scratch
 COPY --from=system-build /mnt/sys-root/ /
 
 CMD ["/bin/bash"]

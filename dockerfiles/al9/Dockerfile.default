@@ -34,8 +34,8 @@ RUN mkdir /mnt/sys-root; \
     --setopt install_weak_deps=false \
     --nodocs \
     krb5-libs ; \
-    dnf --installroot /mnt/sys-root clean all; 
-# Additional hacks for kickstart file and backward compatable support   /mnt/sys-root/var/lib/dnf/history*  
+    dnf --installroot /mnt/sys-root clean all;
+# Additional hacks for kickstart file and backward compatable support   /mnt/sys-root/var/lib/dnf/history*
 RUN rm -rf /mnt/sys-root/var/log/dnf* /mnt/sys-root/var/log/yum.* /mnt/sys-root/usr/share/i18n/charmaps /mnt/sys-root/usr/share/i18n/locales ; \
     rm -rf /mnt/sys-root/var/cache/dnf/* /mnt/sys-root/var/lib/dnf/repos /mnt/sys-root/boot /mnt/sys-root/dev/null ; \
     rm -rf /mnt/sys-root/var/log/hawkey.log /mnt/sys-root/var/log/*  ; \
@@ -58,8 +58,9 @@ RUN rm -rf /mnt/sys-root/var/log/dnf* /mnt/sys-root/var/log/yum.* /mnt/sys-root/
     echo 'FONT="eurlatgr"' >> /mnt/sys-root/etc/vconsole.conf; \
     rm -rf /mnt/sys-root/usr/share/locale/en_US@piglati* /mnt/sys-root/run/blkid /mnt/sys-root/var/cache/dnf/.gpgkeyschecked.yum ; \
     rm -f /mnt/sys-root/etc/machine-id; \
-    touch /mnt/sys-root/etc/machine-id; 
-# AL9 specific hacks    
+    touch /mnt/sys-root/etc/machine-id; \
+    touch /mnt/sys-root/etc/resolv.conf
+# AL9 specific hacks
 RUN mkdir -p /mnt/sys-root/var/cache/private /mnt/sys-root/var/lib/private /mnt/sys-root/var/lib/systemd/coredump /mnt/sys-root/var/lib/tpm2-tss/system/keystore ;\
     mkdir -p /mnt/sys-root/run/cryptsetup /mnt/sys-root/run/lock/subsys /mnt/sys-root/run/log /mnt/sys-root/run/user /mnt/sys-root/run/tpm2-tss/eventlog ;\
     mkdir -p /mnt/sys-root/run/systemd/ask-password /mnt/sys-root/run/systemd/machines /mnt/sys-root/run/systemd/seats /mnt/sys-root/run/systemd/sessions /mnt/sys-root/run/systemd/shutdown /mnt/sys-root/run/systemd/users ;\
@@ -85,7 +86,7 @@ RUN systemctl set-default multi-user.target; \
     getty.target \
     console-getty.service
 
-FROM scratch 
+FROM scratch
 COPY --from=stage2 / /
 
 ENV LANG=C.utf8

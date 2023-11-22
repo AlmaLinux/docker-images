@@ -17,7 +17,7 @@ RUN mkdir /mnt/sys-root; \
     coreutils-single \
     dnf \
     findutils \
-    glibc-minimal-langpack \ 
+    glibc-minimal-langpack \
     hostname \
     iputils \
     langpacks-en \
@@ -27,7 +27,7 @@ RUN mkdir /mnt/sys-root; \
     tar \
     vim-minimal \
     yum \
-    xz \ 
+    xz \
     ; \
     yum --installroot /mnt/sys-root clean all; \
     rm -rf /mnt/sys-root/var/log/dnf* /mnt/sys-root/var/log/yum.*; \
@@ -41,7 +41,8 @@ RUN mkdir /mnt/sys-root; \
     echo 'LANG="C.utf8"' >  /mnt/sys-root/etc/locale.conf; \
     echo 'container' > c/etc/dnf/vars/infra; \
     rm -f /mnt/sys-root/etc/machine-id; \
-    touch /mnt/sys-root/etc/machine-id;
+    touch /mnt/sys-root/etc/machine-id; \
+    touch /mnt/sys-root/etc/resolv.conf
 
 # Fix REPO files for updates and install compatable
 # Following fixes applies to all repo files
@@ -52,9 +53,9 @@ RUN sed -i 's/\/almalinux/\/vault/' /mnt/sys-root/etc/yum.repos.d/*.repo &>/dev/
     sed -i 's/# baseurl/baseurl/' /mnt/sys-root/etc/yum.repos.d/*.repo &>/dev/null; \
 # $basearch variable returns wrong path, fix with right path to keep installer happy
     sed -i 's/$basearch/i686/' /mnt/sys-root/etc/yum.repos.d/*.repo &>/dev/null;
-    
+
 # Create Fresh container image using copy
-FROM scratch 
+FROM scratch
 COPY --from=system-build /mnt/sys-root/ /
 
 ENV LANG=C.utf8
@@ -68,4 +69,3 @@ RUN systemctl set-default multi-user.target; \
     console-getty.service
 
 CMD ["/bin/bash"]
-
