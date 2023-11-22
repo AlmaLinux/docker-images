@@ -4,8 +4,8 @@ FROM ${SYSBASE} as system-build
 RUN mkdir -p /mnt/sys-root; \
     dnf install --installroot /mnt/sys-root coreutils-single glibc-minimal-langpack \
     --releasever 8 --setopt install_weak_deps=false --nodocs -y; \
-    dnf --installroot /mnt/sys-root clean all; 
-# Additional hacks for kickstart file and backward compatable support 
+    dnf --installroot /mnt/sys-root clean all;
+# Additional hacks for kickstart file and backward compatable support
 RUN rm -rf /mnt/sys-root/var/cache/dnf /mnt/sys-root/var/log/dnf* /mnt/sys-root/var/lib/dnf /mnt/sys-root/var/log/yum.*; \
     /bin/date +%Y%m%d_%H%M > /mnt/sys-root/etc/BUILDTIME ;  \
     echo '%_install_langs C.utf8' > /mnt/sys-root/etc/rpm/macros.image-language-conf; \
@@ -14,6 +14,7 @@ RUN rm -rf /mnt/sys-root/var/cache/dnf /mnt/sys-root/var/log/dnf* /mnt/sys-root/
     rm -f /mnt/sys-root/etc/machine-id; \
     touch /mnt/sys-root/etc/machine-id; \
     touch /mnt/sys-root/etc/.pwd.lock; \
+    touch /mnt/sys-root/etc/resolv.conf; \
     chmod 600 /mnt/sys-root/etc/.pwd.lock; \
     rm -rf /mnt/sys-root/usr/share/locale/en* /mnt/sys-root/boot /mnt/sys-root/dev/null /mnt/sys-root/var/log/hawkey.log ; \
     echo '0.0 0 0.0' > /mnt/sys-root/etc/adjtime; \
@@ -25,11 +26,10 @@ RUN rm -rf /mnt/sys-root/var/cache/dnf /mnt/sys-root/var/log/dnf* /mnt/sys-root/
     echo 'KEYMAP="us"' > /mnt/sys-root/etc/vconsole.conf; \
     echo 'FONT="eurlatgr"' >> /mnt/sys-root/etc/vconsole.conf; \
     cd /mnt/sys-root/etc ; \
-    ln -s ../usr/share/zoneinfo/UTC localtime 
+    ln -s ../usr/share/zoneinfo/UTC localtime
 
 FROM scratch
 
 COPY --from=system-build /mnt/sys-root/ /
 
 CMD /bin/sh
-

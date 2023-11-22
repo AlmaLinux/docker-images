@@ -11,7 +11,7 @@ RUN mkdir -p /mnt/sys-root; \
     gdb-gdbserver \
     glibc-minimal-langpack \
     gzip \
-    langpacks-en \    
+    langpacks-en \
     libuser \
     passwd \
     procps-ng \
@@ -22,9 +22,9 @@ RUN mkdir -p /mnt/sys-root; \
     vim-minimal \
     virt-what \
     which \
-    yum \ 
-    ; 
-# Additional hacks for kickstart file and backward compatable support    
+    yum \
+    ;
+# Additional hacks for kickstart file and backward compatable support
 RUN rm -rf /mnt/sys-root/var/log/dnf* /mnt/sys-root/var/log/yum.* /mnt/sys-root/var/cache/dnf/* /mnt/sys-root/var/lib/dnf/repos; \
     rm -rf /mnt/sys-root/var/log/hawkey.log /mnt/sys-root/boot /mnt/sys-root/dev/null /mnt/sys-root/var/log/*  /mnt/sys-root/run/blkid ; \
     mkdir -p /mnt/sys-root/run/lock; \
@@ -36,7 +36,7 @@ RUN rm -rf /mnt/sys-root/var/log/dnf* /mnt/sys-root/var/log/yum.* /mnt/sys-root/
     touch /mnt/sys-root/etc/.pwd.lock; \
     chmod 600 /mnt/sys-root/etc/.pwd.lock; \
     touch /mnt/sys-root/run/utmp ;\
-    chmod 664 /mnt/sys-root/run/utmp ;\    
+    chmod 664 /mnt/sys-root/run/utmp ;\
     echo '0.0 0 0.0' > /mnt/sys-root/etc/adjtime; \
     echo '0' >> /mnt/sys-root/etc/adjtime; \
     echo 'UTC' >> /mnt/sys-root/etc/adjtime; \
@@ -47,13 +47,14 @@ RUN rm -rf /mnt/sys-root/var/log/dnf* /mnt/sys-root/var/log/yum.* /mnt/sys-root/
     echo 'FONT="eurlatgr"' >> /mnt/sys-root/etc/vconsole.conf; \
     rm -rf /mnt/sys-root/usr/share/locale/en_CA/ /mnt/sys-root/usr/share/locale/en_GB/ /mnt/sys-root/usr/share/locale/en@* /mnt/sys-root/usr/share/locale/en  /mnt/sys-root/usr/share/locale/en*@* /mnt/sys-root/usr/share/i18n/charmaps /mnt/sys-root/usr/share/i18n/locales ;\
     rm -f /mnt/sys-root/etc/machine-id; \
-    touch /mnt/sys-root/etc/machine-id;
+    touch /mnt/sys-root/etc/machine-id; \
+    touch /mnt/sys-root/etc/resolv.conf
 
 FROM scratch  as stage2
 
 COPY --from=system-build /mnt/sys-root/ /
 
-ENV LANG=C.utf8 
+ENV LANG=C.utf8
 
 RUN systemctl set-default multi-user.target; \
     systemctl mask systemd-remount-fs.service \
@@ -71,7 +72,7 @@ FROM scratch
 
 COPY --from=stage2 / /
 
-ENV LANG=C.utf8 
+ENV LANG=C.utf8
 
 CMD ["/sbin/init"]
 
