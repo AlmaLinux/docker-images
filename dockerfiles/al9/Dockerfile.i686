@@ -42,7 +42,8 @@ RUN mkdir /mnt/sys-root; \
     echo 'container' > /mnt/sys-root/etc/dnf/vars/infra; \
     rm -f /mnt/sys-root/etc/machine-id; \
     touch /mnt/sys-root/etc/machine-id; \
-    touch /mnt/sys-root/etc/resolv.conf
+    touch /mnt/sys-root/etc/resolv.conf; \
+    touch /mnt/sys-root/etc/hostname
 
 # Fix REPO files for updates and install compatable
 # Following fixes applies to all repo files
