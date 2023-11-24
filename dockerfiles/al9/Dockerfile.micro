@@ -14,6 +14,7 @@ RUN rm -rf /mnt/sys-root/var/cache/dnf /mnt/sys-root/var/log/dnf* /mnt/sys-root/
     rm -f /mnt/sys-root/etc/machine-id; \
     touch /mnt/sys-root/etc/machine-id; \
     touch /mnt/sys-root/etc/resolv.conf; \
+    touch /mnt/sys-root/etc/hostname; \
     touch /mnt/sys-root/etc/.pwd.lock; \
     chmod 600 /mnt/sys-root/etc/.pwd.lock; \
     rm -rf /mnt/sys-root/usr/share/locale/en* /mnt/sys-root/boot /mnt/sys-root/dev/null /mnt/sys-root/var/log/hawkey.log ; \

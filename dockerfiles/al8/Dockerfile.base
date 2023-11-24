@@ -47,7 +47,8 @@ RUN rm -rf /mnt/sys-root/var/log/dnf* /mnt/sys-root/var/log/yum.* /mnt/sys-root/
     rm -rf /mnt/sys-root/usr/share/locale/en_CA/ /mnt/sys-root/usr/share/locale/en_GB/ /mnt/sys-root/usr/share/locale/en@* /mnt/sys-root/usr/share/locale/en  /mnt/sys-root/usr/share/locale/en*@* /mnt/sys-root/usr/share/i18n/charmaps /mnt/sys-root/usr/share/i18n/locales ;\
     rm -f /mnt/sys-root/etc/machine-id; \
     touch /mnt/sys-root/etc/machine-id; \
-    touch /mnt/sys-root/etc/resolv.conf
+    touch /mnt/sys-root/etc/resolv.conf; \
+    touch /mnt/sys-root/etc/hostname
 
 FROM scratch as stage2
 

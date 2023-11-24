@@ -37,6 +37,7 @@ RUN rm -rf /mnt/sys-root/var/log/dnf* /mnt/sys-root/var/log/yum.* /mnt/sys-root/
     rm -f /mnt/sys-root/etc/machine-id; \
     touch /mnt/sys-root/etc/machine-id; \
     touch /mnt/sys-root/etc/resolv.conf; \
+    touch /mnt/sys-root/etc/hostname; \
     cd /mnt/sys-root/etc ; \
     ln -s ../usr/share/zoneinfo/UTC localtime
 

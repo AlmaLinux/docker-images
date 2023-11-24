@@ -55,7 +55,8 @@ RUN rm -rf /mnt/sys-root/var/log/dnf* /mnt/sys-root/var/log/yum.* /mnt/sys-root/
     rm -rf /mnt/sys-root/usr/share/locale/en_CA/ /mnt/sys-root/usr/share/locale/en_GB/ /mnt/sys-root/usr/share/locale/en@* /mnt/sys-root/usr/share/locale/en  /mnt/sys-root/usr/share/locale/en*@* /mnt/sys-root/usr/share/i18n/charmaps /mnt/sys-root/usr/share/i18n/locales ;\
     rm -f /mnt/sys-root/etc/machine-id /mnt/sys-root/var/cache/dnf/.gpgkeyschecked.yum ; \
     touch /mnt/sys-root/etc/machine-id; \
-    touch /mnt/sys-root/etc/resolv.conf
+    touch /mnt/sys-root/etc/resolv.conf; \
+    touch /mnt/sys-root/etc/hostname
 # AL9 specific hacks
 RUN mkdir -p /mnt/sys-root/var/cache/private /mnt/sys-root/var/lib/private /mnt/sys-root/var/lib/systemd/coredump /mnt/sys-root/var/lib/tpm2-tss/system/keystore ;\
     mkdir -p /mnt/sys-root/run/cryptsetup /mnt/sys-root/run/lock/subsys /mnt/sys-root/run/log /mnt/sys-root/run/user /mnt/sys-root/run/tpm2-tss/eventlog ;\

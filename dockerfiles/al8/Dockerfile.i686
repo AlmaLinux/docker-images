@@ -41,7 +41,8 @@ RUN mkdir /mnt/sys-root; \
     echo 'container' > /mnt/sys-root/etc/dnf/vars/infra; \
     rm -f /mnt/sys-root/etc/machine-id; \
     touch /mnt/sys-root/etc/machine-id; \
-    touch /mnt/sys-root/etc/resolv.conf
+    touch /mnt/sys-root/etc/resolv.conf; \
+    touch /mnt/sys-root/etc/hostname
 
 # Build a fresh container image using COPY
 FROM scratch

@@ -48,7 +48,8 @@ RUN rm -rf /mnt/sys-root/var/log/dnf* /mnt/sys-root/var/log/yum.* ; \
     rm -rf /mnt/sys-root/usr/share/locale/en_US@piglati* /mnt/sys-root/run/blkid  ; \
     rm -f /mnt/sys-root/etc/machine-id; \
     touch /mnt/sys-root/etc/machine-id; \
-    touch /mnt/sys-root/etc/resolv.conf
+    touch /mnt/sys-root/etc/resolv.conf; \
+    touch /mnt/sys-root/etc/hostname
 
 FROM scratch as stage2
 COPY --from=system-build /mnt/sys-root/ /
