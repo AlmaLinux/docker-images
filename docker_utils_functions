@@ -22,9 +22,9 @@ OPTIND=1
 get_os_release() {
     local -r image=${1}
     # issue docker pull, redirect messages to null
-    docker pull ${image} > /dev/null
-    local rel=$(docker run --rm ${image} cat /etc/system-release)
-    echo $rel
+    docker pull "${image}" > /dev/null
+    local rel=$(docker run --rm "${image}" cat /etc/system-release)
+    echo "$rel"
 }
 
 #
@@ -40,10 +40,10 @@ get_os_release() {
 get_os_release_version() {
     local -r image=${1}
     # issue docker pull, redirect messages to null
-    docker pull ${image} > /dev/null
-    local rel=$(docker run --rm ${image} awk '{ print $3 }' /etc/system-release )
-    # local rel=$(docker run --rm ${image} awk -F= '$1=="VERSION_ID" { print $2 ;}' /etc/os-release | tr -d '"')
-    echo $rel
+    docker pull "${image}" > /dev/null
+    local rel=$(docker run --rm "${image}" awk '{ print $3 }' /etc/system-release )
+    # local rel=$(docker run --rm "${image}" awk -F= '$1=="VERSION_ID" { print $2 ;}' /etc/os-release | tr -d '"')
+    echo "$rel"
 }
 
 #
@@ -60,9 +60,9 @@ get_os_release_version() {
 get_image_hash() {
     local -r image=${1}
     # issue docker pull, redirect messages to null
-    docker pull ${image} > /dev/null
-    local hash=$(docker inspect ${image} | jq '.[] .Id' | tr -d '"')
-    echo $hash
+    docker pull "${image}" > /dev/null
+    local hash=$(docker inspect "${image}" | jq '.[] .Id' | tr -d '"')
+    echo "$hash"
 }
 
 #
@@ -297,17 +297,17 @@ build_single_image_using_rootfs(){
     local -r tags="${4}"
     local -r skip="${5}"
     local -r arch_machine=$(get_machine_arch "${2}")
-    local tag_list=""
+    local -a tag_list=()
     ## assemble tags one string  to pass
     echo "Tags input: $tags"
     for tag  in $tags
     do
-        tag_list="${tag_list} -t $tag"
+        tag_list+=(-t "$tag")
     done
-    echo "Formated tags: $tag_list"
+    echo "Formated tags: ${tag_list[*]}"
 
     ## TODO: replace buildx ? build and push together
-    docker build "--platform=linux/${arch_platform}" ${tag_list} -f "Dockerfile-${arch_machine}-${type}" .
+    docker build "--platform=linux/${arch_platform}" "${tag_list[@]}" -f "Dockerfile-${arch_machine}-${type}" .
 
     # Circle thru to publish
     if [[ "$skip" == "false" ]]; then
@@ -328,29 +328,29 @@ gen_rootfs() {
     local -r tname="${2}"
     local rootfs_tmp="rootfs_tmp_${2}"
 
-    tcnt=$(docker inspect $image | jq '.[] | .RootFS.Layers | length')
+    tcnt=$(docker inspect "$image" | jq '.[] | .RootFS.Layers | length')
 
     echo "Found $tcnt layer(s) in image '$image'."
-    if [ $tcnt -ne 1 ]; then
+    if [ "$tcnt" -ne 1 ]; then
         echo "Only single layer image is supported at this time. Use '--squash' option to create single layer image."
         exit
     fi
     echo "Setting up temp work dir ..."
-    mkdir -p $rootfs_tmp && cd $rootfs_tmp
+    mkdir -p "$rootfs_tmp" && cd "$rootfs_tmp"
     echo "Saving docker/container image ..."
-    docker save $image -o rootfstmp.tar
+    docker save "$image" -o rootfstmp.tar
     trepo=$(tar -tf rootfstmp.tar | grep layer)
-    tcnt=$(echo $trepo | tr ' ' '\n' | grep layer | wc -l | xargs)
+    tcnt=$(echo "$trepo" | tr ' ' '\n' | grep layer | wc -l | xargs)
 #    echo "Found $tcnt layer(s) in image '$image'."
-    if [ $tcnt -eq 1 ]; then
+    if [ "$tcnt" -eq 1 ]; then
         echo "Extracting rootfs $trepo ..."
-        tar -xf rootfstmp.tar $trepo
-        mv $trepo $tname.tar
+        tar -xf rootfstmp.tar "$trepo"
+        mv "$trepo" "$tname.tar"
         echo "Compressing rootfs ..."
-        xz $tname.tar
-        mv $tname* ../
+        xz "$tname.tar"
+        mv "$tname"* ../
         cd ..
-        F1=$(ls *.tar* | grep $tname)
+        F1=$(ls *.tar* | grep "$tname")
         TMSG="Task complete. Output rootfs located at $PWD/$F1"
     else
         echo "Only single layer image is supported at this time. Use '--squash' option to create single layer image."
@@ -358,8 +358,8 @@ gen_rootfs() {
         TMSG="Error Exit, task complete."
     fi
     echo "Perform cleanup ..."
-    rm -rf $rootfs_tmp
-    echo $TMSG
+    rm -rf "$rootfs_tmp"
+    echo "$TMSG"
 }
 
 #
@@ -383,18 +383,18 @@ pull_docker_official() {
     tag="$tag-$date_suffix"
     echo "docker pull docker.io/amd64/almalinux:$tag1"
     echo "docker tag docker.io/amd64/almalinux:$tag1 $repo_prefix/amd64:$tag"
-    docker pull docker.io/amd64/almalinux:$tag1
-    docker tag docker.io/amd64/almalinux:$tag1 "$repo_prefix/amd64:$tag"
+    docker pull "docker.io/amd64/almalinux:$tag1"
+    docker tag "docker.io/amd64/almalinux:$tag1" "$repo_prefix/amd64:$tag"
     docker push "$repo_prefix/amd64:$tag"
-    docker pull docker.io/arm64v8/almalinux:$tag1
-    docker tag docker.io/arm64v8/almalinux:$tag1 "$repo_prefix/arm64v8:$tag"
+    docker pull "docker.io/arm64v8/almalinux:$tag1"
+    docker tag "docker.io/arm64v8/almalinux:$tag1" "$repo_prefix/arm64v8:$tag"
     docker push "$repo_prefix/arm64v8:$tag"
-    docker pull docker.io/ppc64le/almalinux:$tag1
-    docker tag docker.io/ppc64le/almalinux:$tag1 "$repo_prefix/ppc64le:$tag"
+    docker pull "docker.io/ppc64le/almalinux:$tag1"
+    docker tag "docker.io/ppc64le/almalinux:$tag1" "$repo_prefix/ppc64le:$tag"
     docker push "$repo_prefix/ppc64le:$tag"
 #    if [[ $al_version == "9" ]]; then
-        docker pull docker.io/s390x/almalinux:$tag1
-        docker tag docker.io/s390x/almalinux:$tag1 "$repo_prefix/s390x:$tag"
+        docker pull "docker.io/s390x/almalinux:$tag1"
+        docker tag "docker.io/s390x/almalinux:$tag1" "$repo_prefix/s390x:$tag"
         docker push "$repo_prefix/s390x:$tag"
 #    fi
 
@@ -408,7 +408,7 @@ build_push_manifest() {
     local -r repos="${4}"
     local -r date_suffix="${5}"
     local -r tags="latest ${1} ${1}.${2} ${1}.${2}-${5}"
-    local types=$(get_build_types ${input_type})
+    local types=$(get_build_types "${input_type}")
 
     for repo_prefix in $repos;
     do
@@ -446,7 +446,7 @@ build_push_manifest() {
                 # echo "Part2: ${part2}"
                 # rm returns error when repo/tag not found
                 # docker manifest rm $part1
-                docker manifest create ${part1} ${part2}
+                docker manifest create "${part1}" "${part2}"
                 docker manifest push "${part1}"
             done
             fi
@@ -464,14 +464,14 @@ function formatTags() {
 
     for repo_prefix in $repos
     do
-        build_tag=${build_tag}${repo_prefix}'/'$(get_registry_arch ${arch})$separator${al_version}.${rel_version}
+        build_tag="${build_tag}${repo_prefix}/$(get_registry_arch "${arch}")$separator${al_version}.${rel_version}"
         if [ "$type" == "default" ]; then
             build_tag="${build_tag}-${tag_date} "
         else
             build_tag="${build_tag}-${type}-${tag_date} "
         fi
     done
-    echo $build_tag
+    echo "$build_tag"
 }
 
 #
@@ -496,8 +496,8 @@ build_images () {
     local -r tag_date="${6}"
     local -r from="${7}"
     local -r skip="${8:=false}"
-    local arch_list=$(get_build_arch ${al_version} ${input_arch})
-    local type_list=$(get_build_types ${input_type})
+    local arch_list=$(get_build_arch "${al_version}" "${input_arch}")
+    local type_list=$(get_build_types "${input_type}")
 
     echo "************************************************"
     echo "*                                              *"
@@ -562,9 +562,9 @@ build_images () {
                 if [[ "$from" == "repos" ]]; then
                     tag=""
                     echo "build_single_image_using_repos ${al_version} ${arch} $type $build_tag ${al_sysbase}"
-                    build_single_image_using_repos ${al_version} ${arch} $type $build_tag ${al_sysbase}
-                    file_prefix='almalinux-'${al_version}'-docker-'$(get_machine_arch ${arch})'-'$type
-                    gen_rootfs $build_tag $file_prefix
+                    build_single_image_using_repos "${al_version}" "${arch}" "$type" "$build_tag" "${al_sysbase}"
+                    file_prefix="almalinux-${al_version}-docker-$(get_machine_arch "${arch}")-$type"
+                    gen_rootfs "$build_tag" "$file_prefix"
                     #docker push $build_tag
                 fi
                 if [[ "$from" == "rootfs" ]]; then
@@ -605,7 +605,7 @@ fileCommit() {
 #
 gitBranchLastCommit() {
 	local -r branch="$1"
-	git rev-parse $branch
+	git rev-parse "$branch"
 }
 
 #
@@ -625,7 +625,7 @@ jsonLastCommit() {
 	if [ "${run_env}" == "prd" ]; then
 		git_url="https://api.github.com/repos/almalinux/docker-images/commits/$branch"
 	fi
-	curl -s $git_url
+	curl -s "$git_url"
 }
 
 #
@@ -648,8 +648,8 @@ jsonLastCommit() {
 #
 getDevlLibBranchlist() {
     rel="${1}"
-    prd=$(getProdLibBranchPrefix $rel)
-    curl -s https://api.github.com/repos/almalinuxautobot/docker-images/branches | jq '.[] .name' | grep al${rel} | tr -d '"' | grep -v template | awk -v inp="${prd}" ' $1 > inp { printf $1"\n" }'
+    prd=$(getProdLibBranchPrefix "$rel")
+    curl -s https://api.github.com/repos/almalinuxautobot/docker-images/branches | jq '.[] .name' | grep "al${rel}" | tr -d '"' | grep -v template | awk -v inp="${prd}" ' $1 > inp { printf $1"\n" }'
     # echo $list
 }
 
@@ -667,8 +667,8 @@ getProdLibBranchPrefix() {
 	local -r ver="${1}"
     ownerPath="${2:-docker-library/official-images/master}"
     url="https://raw.githubusercontent.com/${ownerPath}/library/almalinux"
-    ref_branch=$(curl -s $url  | grep GitFetch | grep al$1 | sort -ru | awk 'FNR < 2 { print $2 } ' | sed 's/-s390x//g;s=refs/heads/==g')
-    echo $ref_branch
+    ref_branch=$(curl -s "$url" | grep GitFetch | grep "al$1" | sort -ru | awk 'FNR < 2 { print $2 } ' | sed 's/-s390x//g;s=refs/heads/==g')
+    echo "$ref_branch"
 }
 
 #
@@ -685,8 +685,8 @@ getProdLibBranchPrefix() {
 gitBranchLastCommitHash() {
 	local -r branch="$1"
 	hash=$(git ls-remote -h https://github.com/AlmaLinux/docker-images | grep "${branch}" | awk '{ print $1 }')
-	# hash=$(echo $json | jq '.sha' | xargs)
-    echo $hash
+	# hash=$(echo "$json" | jq '.sha' | xargs)
+    echo "$hash"
 }
 
 #
@@ -724,8 +724,8 @@ validateOrPrepareBranches() {
   repoUrlDevl="https://github.com/almalinuxautobot/docker-images"
   repoPrefix="al${ver}-${releaseDate}"
   # needed echo to capture value is zero
-  repoCount=$(echo $(git ls-remote -h ${repoUrlProd} | grep ${repoPrefix} | wc -l | xargs))
-  echo $repoCount
+  repoCount=$(echo $(git ls-remote -h "${repoUrlProd}" | grep "${repoPrefix}" | wc -l | xargs))
+  echo "$repoCount"
   echo "Repo Prefix: ${repoPrefix}, found ${repoCount} branches in ${repoUrlProd}"
   echo "Source branch: ${sourceBranch}"
   if [[ ${repoCount} > 0 ]]; then
@@ -768,13 +768,13 @@ validateOrPrepareBranches() {
   fi
   # mkdir -p work
   rm -rf "work/source${ver}"
-  git clone --single-branch --branch=$sourceBranch $repoUrlDevl "work/source${ver}"
+  git clone --single-branch --branch="$sourceBranch" "$repoUrlDevl" "work/source${ver}"
   cd "work/source${ver}"
   git remote add alma "${repoUrlProd}"
   git checkout -b "${repoPrefix}"
   # git push alma "${repoPrefix}"
   if [[ "${gitusr}" != "skip-push" ]]; then
-    git push https://${gitusr}:${gitpwd}@github.com/AlmaLinux/docker-images.git "${repoPrefix}"
+    git push "https://${gitusr}:${gitpwd}@github.com/AlmaLinux/docker-images.git" "${repoPrefix}"
   fi
   ls -al
   git branch
@@ -783,12 +783,12 @@ validateOrPrepareBranches() {
   arch_list="x86_64 aarch64 ppc64le s390x"
   for march in $arch_list;
   do
-    reg_arch=$(get_registry_arch ${march})
+    reg_arch=$(get_registry_arch "${march}")
     echo "Creating orphan branch ${repoPrefix}-$reg_arch"
     git checkout --orphan "${repoPrefix}-$reg_arch"
     for arch in $arch_list;
     do
-      if [ $march != $arch ]; then
+      if [ "$march" != "$arch" ]; then
         # echo "Deleteing ... git rm -f *${arch}* files"
         echo "Removing other arch files"
         git rm -f "*${arch}*"
@@ -800,10 +800,10 @@ validateOrPrepareBranches() {
     echo "git push to prod url"
     #git push alma "${repoPrefix}-$reg_arch"
     if [[ "${gitusr}" != "skip-push" ]]; then
-      git push https://${gitusr}:${gitpwd}@github.com/AlmaLinux/docker-images.git "${repoPrefix}-${reg_arch}"
+      git push "https://${gitusr}:${gitpwd}@github.com/AlmaLinux/docker-images.git" "${repoPrefix}-${reg_arch}"
     fi
     sleep 3
-    git checkout $sourceBranch
+    git checkout "$sourceBranch"
     sleep 2
   done
   git branch
