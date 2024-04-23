@@ -1,7 +1,7 @@
-# AlmaLinux OS
-
 ⚠️ **This repository is outdated. AlmaLinux Docker/Container images scripts and workflows are now located in the [container-images](https://github.com/AlmaLinux/container-images) repository. All issues and pull requests must be created to the new repository.**
  
+# AlmaLinux OS
+
 [**`AlmaLinux OS`**](https://almalinux.org/) is an Open Source and forever-free enterprise Linux distribution, governed and driven by the community, focused on long-term stability and a robust production-grade platform. AlmaLinux OS is 1:1 binary compatible with RHEL® 8 and it was founded by the team behind the well-established [**`CloudLinux OS`**](https://www.cloudlinux.com/all-products/product-overview/cloudlinuxos).
 
 # AlmaLinux Container/Docker Images
